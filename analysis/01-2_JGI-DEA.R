@@ -246,7 +246,6 @@ sig_results <- all_results %>%
 str(sig_results)
 # 'data.frame':	21737 obs. of  4 variables:
 
-
 write.table(
   sig_results, quote = FALSE, sep = "\t",
   row.names = FALSE, col.names = TRUE,
@@ -256,19 +255,28 @@ write.table(
 write(sig_results$cds, "results/jgi_dea_sig.cdsID.txt")
 
 
-sig_upReg <- sig_results %>% 
+# Focus on young gland vs young glandless comparison
+g_gl_sig_results <- sig_results |> 
+  filter(focus == "gYoung_glYoung") |> 
+  select(!focus)
+
+str(g_gl_sig_results)
+# 'data.frame':	21735 obs. of  3 variables:
+
+
+gland_upReg <- g_gl_sig_results %>% 
   filter(logFC >= lfcCutoff)
 
-str(sig_upReg)
+str(gland_upReg)
 # 'data.frame':	2701 obs. of  4 variables:
 
-write(sig_upReg$cds, "results/jgi_dea_upReg.cdsID.txt")
+write(gland_upReg$cds, "results/jgi_gland_upReg.cdsID.txt")
 
 
-sig_downReg <- sig_results %>% 
+glandless_upReg <- g_gl_sig_results %>% 
   filter(logFC <= lfcCutoff)
 
-str(sig_downReg)
-# 'data.frame':	19036 obs. of  4 variables:
+str(glandless_upReg)
+# 'data.frame':	19034 obs. of  4 variables:
 
-write(unique(sig_downReg$cds), "results/jgi_dea_downReg.cdsID.txt")
+write(unique(glandless_upReg$cds), "results/jgi_glandless_upReg.cdsID.txt")
