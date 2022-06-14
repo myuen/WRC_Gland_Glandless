@@ -138,9 +138,6 @@ v <- voom(y, modMat, plot = TRUE)
 # Create PCA plot
 (p <- PCA_maker(expDes, v))
 
-# ggsave("results/figures/ubc_pca.jpg", plot = p,
-#        units = "px", width = 3000, height = 2000)
-
 ggsave("results/figures/ubc_pca.svg", plot = p)
 
 
@@ -204,19 +201,19 @@ write.table(
 write(sig_results$cds, "results/ubc_dea_sig.cdsID.txt")
 
 
-sig_upReg <- sig_results %>% 
+gland_upReg <- sig_results %>% 
   filter(logFC >= lfcCutoff)
 
-str(sig_upReg)
+str(gland_upReg)
 # 'data.frame':	1726 obs. of  3 variables:
 
-write(sig_upReg$cds, "results/ubc_dea_upReg.cdsID.txt")
+write(gland_upReg$cds, "results/ubc_gland_upReg.cdsID.txt")
 
 
-sig_downReg <- sig_results %>% 
+glandless_upReg <- sig_results %>% 
   filter(logFC <= lfcCutoff)
 
-str(sig_downReg)
+str(glandless_upReg)
 # 'data.frame':	673 obs. of  3 variables:
 
-write(sig_downReg$cds, "results/ubc_dea_downReg.cdsID.txt")
+write(glandless_upReg$cds, "results/ubc_glandless_upReg.cdsID.txt")
