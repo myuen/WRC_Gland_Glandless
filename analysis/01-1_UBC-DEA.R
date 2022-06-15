@@ -199,21 +199,3 @@ write.table(
 )
 
 write(sig_results$cds, "results/ubc_dea_sig.cdsID.txt")
-
-
-gland_upReg <- sig_results %>% 
-  filter(logFC >= lfcCutoff)
-
-str(gland_upReg)
-# 'data.frame':	1726 obs. of  3 variables:
-
-write(gland_upReg$cds, "results/ubc_gland_upReg.cdsID.txt")
-
-
-glandless_upReg <- sig_results %>% 
-  filter(logFC <= lfcCutoff)
-
-str(glandless_upReg)
-# 'data.frame':	673 obs. of  3 variables:
-
-write(glandless_upReg$cds, "results/ubc_glandless_upReg.cdsID.txt")
