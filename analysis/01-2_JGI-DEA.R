@@ -187,10 +187,8 @@ cont_matrix <- makeContrasts(
   # young gland vs young glandless, complementing 
   # the comparison in UBC experiment
   gYoung_glYoung = gland - glandless,
-  # glandless mature vs glandless young
-  glMature_glYoung = mature,
-  # gland mature vs gland young
-  gMature_gYoung = gland_mature,
+  # mature gland vs mature glandless
+  gMature_glMature = gland + gland_mature,
   levels = modMat)
 
 
@@ -207,10 +205,10 @@ summary(decideTests(fit3, method = "separate",
                     adjust.method = "fdr", p.value = pCutoff, 
                     lfc = lfcCutoff))
 
-#        gYoung_glYoung glMature_glYoung gMature_gYoung
-# Down            19034                2              0
-# NotSig          20361            42094          42096
-# Up               2701                0              0
+#        gYoung_glYoung gMature_glMature
+# Down            19034              110
+# NotSig          20361            41427
+# Up               2701              559
 
 
 focus <- colnames(cont_matrix)
@@ -224,12 +222,11 @@ all_results <-
 })
 
 str(all_results)
-# 'data.frame':	126288 obs. of  4 variables:
+# 'data.frame':	84192 obs. of  4 variables:
 
 table(all_results$focus)
-# glMature_glYoung   gMature_gYoung   gYoung_glYoung 
-#            42096            42096            42096 
-
+# gMature_glMature   gYoung_glYoung 
+#            42096            42096 
 
 ### Write out stats of all contigs
 write.table(
@@ -246,37 +243,11 @@ sig_results <- all_results %>%
 str(sig_results)
 # 'data.frame':	21737 obs. of  4 variables:
 
+
 write.table(
   sig_results, quote = FALSE, sep = "\t",
   row.names = FALSE, col.names = TRUE,
   "results/jgi_dea_sig_results.txt"
 )
 
-write(sig_results$cds, "results/jgi_dea_sig.cdsID.txt")
-
-
-# Focus on young gland vs young glandless comparison
-g_gl_sig_results <- sig_results |> 
-  filter(focus == "gYoung_glYoung") |> 
-  select(!focus)
-
-str(g_gl_sig_results)
-# 'data.frame':	21735 obs. of  3 variables:
-
-
-gland_upReg <- g_gl_sig_results %>% 
-  filter(logFC >= lfcCutoff)
-
-str(gland_upReg)
-# 'data.frame':	2701 obs. of  4 variables:
-
-write(gland_upReg$cds, "results/jgi_gland_upReg.cdsID.txt")
-
-
-glandless_upReg <- g_gl_sig_results %>% 
-  filter(logFC <= lfcCutoff)
-
-str(glandless_upReg)
-# 'data.frame':	19034 obs. of  4 variables:
-
-write(unique(glandless_upReg$cds), "results/jgi_glandless_upReg.cdsID.txt")
+write(unique(sig_results$cds), "results/jgi_dea_sig.cdsID.txt")
