@@ -1,5 +1,5 @@
 library(dplyr)
-library(purrr)
+library(ggplot2)
 library(stringr)
 library(tibble)
 
@@ -7,7 +7,7 @@ library(tibble)
 
 TPS_exp_plot <- function(stats, title) {
 
-  bound <- ceiling(max(stats$logFC))
+  bound <- ceiling(max(abs(stats$logFC)))
   
   ggplot(stats, aes(x = logFC, y = cds)) +
   geom_point(size = 2.5, aes(shape = type)) +
@@ -162,7 +162,13 @@ str(JGI_TPS_stats)
 JGI_TPS_stats$type <- factor(JGI_TPS_stats$type,
                              levels = c("Putative", "Annotated", "Sabinene Synthase"))
 
+JGI_TPS_stats$focus <- factor(JGI_TPS_stats$focus, 
+                              levels = c("gYoung_glYoung", "gMature_glMature"))
+
 (JGI_TPS_exp_plot <-
   TPS_exp_plot(JGI_TPS_stats, "JGI Terpene Synthase Expression Plot"))
+
+(JGI_TPS_exp_plot <- 
+    JGI_TPS_exp_plot + facet_wrap(~focus, nrow = 2, strip.position = "right"))
 
 ggsave("results/figures/JGI_TPS_expression.svg", plot = JGI_TPS_exp_plot)
