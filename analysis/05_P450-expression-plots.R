@@ -11,7 +11,7 @@ shapes <- c(0, 1, 19, 17)
 
 P450_exp_plot <- function(stats, title, pt_shapes) {
   
-  bound <- ceiling(max(stats$logFC))
+  bound <- ceiling(max(abs(stats$logFC)))
   
   ggplot(stats, aes(x = logFC, y = cds)) +
     geom_point(size = 2.5, aes(shape = type)) +
@@ -104,15 +104,15 @@ UBC_P450_stats <- inner_join(UBC_dea_stats, UBC_P450s)
 str(UBC_P450_stats)  
 # 'data.frame':	472 obs. of  4 variables:
 
-# UBC_P450_stats$type <- 
-#   factor(UBC_P450_stats$type,
-#          levels = c("Putative", "Annotated", "CYP750B1", "CYP76AA25"))
+UBC_P450_stats$type <-
+  factor(UBC_P450_stats$type,
+         levels = c("Putative", "Annotated", "CYP750B1", "CYP76AA25"))
 
 # Number of types
 num_types <- length(unique(UBC_P450s$type))
 
 (UBC_P450_exp_plot <- 
-    P450_exp_plot(UBC_P450_stats, "UBC P450s Plot", shapes[1:num_types]))
+    P450_exp_plot(UBC_P450_stats, "UBC P450s Expression Plot", shapes[1:num_types]))
 
 ggsave("results/figures/UBC_P450_expression.svg", plot = UBC_P450_exp_plot)
 
@@ -165,7 +165,7 @@ JGI_annotated_P450s <- JGI_annotated_P450s |>
   select(V2) |> unique()
 
 str(JGI_annotated_P450s)
-# 'data.frame':	8 obs. of  1 variable:
+# 'data.frame':	9 obs. of  1 variable:
 
 JGI_P450s[JGI_annotated_P450s$V2, "type"] <- "Annotated"
 
@@ -176,7 +176,7 @@ JGI_P450s[CYP76AA25,] <- "CYP76AA25"
 JGI_P450s <- JGI_P450s |> rownames_to_column("cds")
 
 str(JGI_P450s)
-# 'data.frame':	1066 obs. of  2 variables:
+# 'data.frame':	1763 obs. of  2 variables:
 
 
 JGI_P450_stats <- inner_join(JGI_dea_stats, JGI_P450s)
@@ -197,7 +197,7 @@ JGI_P450_stats$focus <-
 num_types <- length(unique(JGI_P450s$type))
 
 (JGI_P450_exp_plot <- 
-  P450_exp_plot(JGI_P450_stats, "JGI P450s Plot", shapes[1:num_types]))
+  P450_exp_plot(JGI_P450_stats, "JGI P450s Expression Plot", shapes[1:num_types]))
 
 (JGI_P450_exp_plot <- JGI_P450_exp_plot + 
   facet_wrap(~ focus, nrow = 2, strip.position = "right"))
