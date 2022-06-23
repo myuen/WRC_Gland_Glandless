@@ -4488,7 +4488,7 @@
 <text x='490.46' y='176.83' style='font-size: 8.80px; font-family: "Liberation Sans";' textLength='36.09px' lengthAdjust='spacingAndGlyphs'>Putative</text>
 <text x='490.46' y='194.11' style='font-size: 8.80px; font-family: "Liberation Sans";' textLength='45.84px' lengthAdjust='spacingAndGlyphs'>Annotated</text>
 <text x='490.46' y='211.39' style='font-size: 8.80px; font-family: "Liberation Sans";' textLength='51.33px' lengthAdjust='spacingAndGlyphs'>CYP76AA25</text>
-<text x='21.27' y='15.10' style='font-size: 13.20px; font-family: "Liberation Sans";' textLength='91.25px' lengthAdjust='spacingAndGlyphs'>JGI P450s Plot</text>
+<text x='21.27' y='15.10' style='font-size: 13.20px; font-family: "Liberation Sans";' textLength='167.04px' lengthAdjust='spacingAndGlyphs'>JGI P450s Expression Plot</text>
 <text x='434.25' y='383.44' text-anchor='end' style='font-size: 8.80px; font-family: "Liberation Sans";' textLength='72.47px' lengthAdjust='spacingAndGlyphs'>p-value &lt;= 0.05</text>
 </g>
 </svg>
