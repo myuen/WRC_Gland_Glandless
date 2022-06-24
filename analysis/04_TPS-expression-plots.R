@@ -5,7 +5,7 @@ library(tibble)
 
 #####
 
-TPS_exp_plot <- function(stats, title) {
+TPS_exp_plot <- function(stats) {
 
   bound <- ceiling(max(abs(stats$logFC)))
   
@@ -18,8 +18,7 @@ TPS_exp_plot <- function(stats, title) {
                      # labels = c("Putative", "Annotated", "Sabinene Synthase"),
                      # labels = character(stats$type),
                      values = c(1, 19, 15)) +
-  
-  ggtitle(title) +
+
   labs(caption = "p-value <= 0.05") +
   xlab(expression(paste("log"[2],"FC"))) +
   ylab("") +
@@ -100,8 +99,13 @@ str(UBC_TPS_stats)
 UBC_TPS_stats$type <- factor(UBC_TPS_stats$type,
                              levels = c("Putative", "Annotated", "Sabinene Synthase"))
 
+UBC_TPS_exp_plot <- 
+  TPS_exp_plot(UBC_TPS_stats)
+
 (UBC_TPS_exp_plot <- 
-  TPS_exp_plot(UBC_TPS_stats, "UBC Full Length Terpene Synthase Expression Plot"))
+  UBC_TPS_exp_plot + 
+  ggtitle("UBC Putative Full Length Terpene Synthase Expression Plot",
+          subtitle = "Size filtered >= 500 a.a"))
 
 ggsave("results/figures/UBC_TPS_expression.svg", plot = UBC_TPS_exp_plot)
 
@@ -166,10 +170,11 @@ JGI_TPS_stats$type <- factor(JGI_TPS_stats$type,
 JGI_TPS_stats$focus <- factor(JGI_TPS_stats$focus, 
                               levels = c("gYoung_glYoung", "gMature_glMature"))
 
-JGI_TPS_exp_plot <-
-  TPS_exp_plot(JGI_TPS_stats, "JGI Full Length Terpene Synthase Expression Plot")
+JGI_TPS_exp_plot <- TPS_exp_plot(JGI_TPS_stats)
 
-(JGI_TPS_exp_plot <- 
-    JGI_TPS_exp_plot + facet_wrap(~focus, nrow = 2, strip.position = "right"))
+(JGI_TPS_exp_plot <- JGI_TPS_exp_plot + 
+  ggtitle("JGI Putative Full Length Terpene Synthase Expression Plot",
+          subtitle = "Size filtered >= 500 a.a") + 
+  facet_wrap(~focus, nrow = 2, strip.position = "right"))
 
 ggsave("results/figures/JGI_TPS_expression.svg", plot = JGI_TPS_exp_plot)
