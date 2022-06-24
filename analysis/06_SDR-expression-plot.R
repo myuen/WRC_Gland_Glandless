@@ -80,7 +80,7 @@ UBC_SDR_stats <- inner_join(UBC_dea_stats, UBC_SDRs)
 # Joining, by = "cds"
 
 str(UBC_SDR_stats)
-# 'data.frame':	317 obs. of  4 variables:
+# 'data.frame':	243 obs. of  4 variables:
 
 UBC_SDR_stats$type <- factor(UBC_SDR_stats$type,
                              levels = c("Putative", "Cloned"))
@@ -129,13 +129,13 @@ JGI_SDRs$type <- "Putative"
 colnames(JGI_SDRs)[1] <- 'cds'
 
 str(JGI_SDRs)
-# 'data.frame':	383 obs. of  2 variables:
+# 'data.frame':	699 obs. of  2 variables:
 
 
 JGI_SDRs[JGI_SDRs$cds %in% JGI_cloned_SDRs,][2] <- "Cloned"
 
 str(JGI_SDRs)
-# 'data.frame':	383 obs. of  2 variables:
+# 'data.frame':	699 obs. of  2 variables:
 
 
 JGI_SDR_stats <- inner_join(JGI_dea_stats, JGI_SDRs)
@@ -152,7 +152,7 @@ JGI_SDR_stats$focus <- factor(JGI_SDR_stats$focus,
 
 JGI_SDR_exp_plot <- SDR_exp_plot(JGI_SDR_stats)
 
-(JGI_SDR_exp_plot +
+(JGI_SDR_exp_plot <- JGI_SDR_exp_plot +
     ggtitle("JGI Short Chained Alcohol Dehydrogenase (SDR) Expression", 
           subtitle = "Size filtered between 250 to 350 a.a") +
     facet_wrap(~ focus, nrow = 2, strip.position = "right"))
