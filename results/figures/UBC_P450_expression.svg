@@ -1500,7 +1500,7 @@
 <text x='490.46' y='185.47' style='font-size: 8.80px; font-family: "Liberation Sans";' textLength='45.84px' lengthAdjust='spacingAndGlyphs'>Annotated</text>
 <text x='490.46' y='202.75' style='font-size: 8.80px; font-family: "Liberation Sans";' textLength='45.08px' lengthAdjust='spacingAndGlyphs'>CYP750B1</text>
 <text x='490.46' y='220.03' style='font-size: 8.80px; font-family: "Liberation Sans";' textLength='51.33px' lengthAdjust='spacingAndGlyphs'>CYP76AA25</text>
-<text x='21.27' y='15.10' style='font-size: 13.20px; font-family: "Liberation Sans";' textLength='100.94px' lengthAdjust='spacingAndGlyphs'>UBC P450s Plot</text>
+<text x='21.27' y='15.10' style='font-size: 13.20px; font-family: "Liberation Sans";' textLength='176.72px' lengthAdjust='spacingAndGlyphs'>UBC P450s Expression Plot</text>
 <text x='451.26' y='383.44' text-anchor='end' style='font-size: 8.80px; font-family: "Liberation Sans";' textLength='72.47px' lengthAdjust='spacingAndGlyphs'>p-value &lt;= 0.05</text>
 </g>
 </svg>
