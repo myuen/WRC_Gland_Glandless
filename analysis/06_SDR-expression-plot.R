@@ -47,7 +47,7 @@ UBC_putative_SDRs <-
 UBC_putative_SDRs <- unique(UBC_putative_SDRs)
 
 length(UBC_putative_SDRs)
-# [1] 492
+# Read 357 items
 
 
 UBC_cloned_SDRs <- 
@@ -67,20 +67,20 @@ UBC_SDRs$type <- "Putative"
 colnames(UBC_SDRs)[1] <- 'cds'
 
 str(UBC_SDRs)
-# 'data.frame':	595 obs. of  2 variables:
+# 'data.frame':	357 obs. of  2 variables:
 
 
 UBC_SDRs[UBC_SDRs$cds %in% UBC_cloned_SDRs,][2] <- "Cloned"
 
 str(UBC_SDRs)
-# 'data.frame':	492 obs. of  2 variables:
+# 'data.frame':	357 obs. of  2 variables:
 
 
 UBC_SDR_stats <- inner_join(UBC_dea_stats, UBC_SDRs)
 # Joining, by = "cds"
 
 str(UBC_SDR_stats)
-# 'data.frame':	243 obs. of  4 variables:
+# 'data.frame':	159 obs. of  4 variables:
 
 UBC_SDR_stats$type <- factor(UBC_SDR_stats$type,
                              levels = c("Putative", "Cloned"))
@@ -109,7 +109,7 @@ JGI_putative_SDRs <-
 JGI_putative_SDRs <- unique(JGI_putative_SDRs)
 
 length(JGI_putative_SDRs)
-# [1] 699
+# [1] 383
 
 
 JGI_cloned_SDRs <- 
@@ -129,7 +129,7 @@ JGI_SDRs$type <- "Putative"
 colnames(JGI_SDRs)[1] <- 'cds'
 
 str(JGI_SDRs)
-# 'data.frame':	699 obs. of  2 variables:
+# 'data.frame':	383 obs. of  2 variables:
 
 
 JGI_SDRs[JGI_SDRs$cds %in% JGI_cloned_SDRs,][2] <- "Cloned"
