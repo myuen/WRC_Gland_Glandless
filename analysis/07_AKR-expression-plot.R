@@ -4,7 +4,7 @@ library(stringr)
 
 #####
 
-AKR_exp_plot <- function(stats, title) {
+AKR_exp_plot <- function(stats) {
   
   bound <- ceiling(max(abs(stats$logFC)))
   
@@ -14,7 +14,6 @@ AKR_exp_plot <- function(stats, title) {
                      breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
   scale_y_discrete(labels = NULL) +
 
-  ggtitle(title) +
   labs(caption = "p-value <= 0.05") +
   xlab(expression(paste("log"[2],"FC"))) +
   ylab("") +
@@ -53,8 +52,10 @@ UBC_AKR_stats <- UBC_dea_stats |> filter(cds %in% UBC_putative_AKRs)
 str(UBC_AKR_stats)
 # 'data.frame':	100 obs. of  3 variables:
 
-(UBC_AKR_exp_plot <- 
-  AKR_exp_plot(UBC_AKR_stats, "UBC Putative Aldo-Keto Reductase (AKR) Expression"))
+UBC_AKR_exp_plot <- AKR_exp_plot(UBC_AKR_stats)
+
+(UBC_AKR_exp_plot <- UBC_AKR_exp_plot + 
+    ggtitle("UBC Putative Aldo-Keto Reductase (AKR) Expression"))
 
 ggsave("results/figures/UBC_AKR_expression.svg", plot = UBC_AKR_exp_plot)
 
@@ -85,8 +86,10 @@ str(JGI_AKR_stats)
 JGI_AKR_stats$focus <- factor(JGI_AKR_stats$focus, 
                               levels = c("gYoung_glYoung", "gMature_glMature"))
 
-(JGI_AKR_exp_plot <- 
-    AKR_exp_plot(JGI_AKR_stats, "JGI Putative Aldo-Keto Reductase (AKR) Expression"))
+JGI_AKR_exp_plot <- AKR_exp_plot(JGI_AKR_stats)
+
+(JGI_AKR_exp_plot <- JGI_AKR_exp_plot + 
+    ggtitle("JGI Putative Aldo-Keto Reductase (AKR) Expression"))
 
 (JGI_AKR_exp_plot <- 
     JGI_AKR_exp_plot + facet_wrap(~ focus, nrow = 2, strip.position = "right"))
