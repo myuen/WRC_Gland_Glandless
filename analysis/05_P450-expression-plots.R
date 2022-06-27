@@ -9,7 +9,7 @@ library(tibble)
 # geom_points shapes in preferencial order
 shapes <- c(0, 1, 19, 17)
 
-P450_exp_plot <- function(stats, title, pt_shapes) {
+P450_exp_plot <- function(stats, pt_shapes) {
   
   bound <- ceiling(max(abs(stats$logFC)))
   
@@ -22,7 +22,7 @@ P450_exp_plot <- function(stats, title, pt_shapes) {
     #                    labels = character(stats$type),
                        values = pt_shapes) +
     
-    ggtitle(title) +
+    # ggtitle(title) +
     labs(caption = "p-value <= 0.05") +
     xlab(expression(paste("log"[2],"FC"))) +
     ylab("") +
@@ -79,9 +79,9 @@ CYP76AA25 <-
 
 
 # Filter out low percent positive (V7) from BLASTp
-UBC_annotated_P450s <- UBC_annotated_P450s |> 
-  filter(V7 >= 90) |> 
-  select(V2) |> unique()
+UBC_annotated_P450s <- UBC_annotated_P450s %>%  
+  filter(V7 >= 90) %>%  
+  select(V2) %>% unique()
 
 str(UBC_annotated_P450s)
 # 'data.frame':	8 obs. of  1 variable:
@@ -92,7 +92,7 @@ UBC_P450s[CYP750B1,] <- "CYP750B1"
 UBC_P450s[CYP76AA25,] <- "CYP76AA25"
 
 # Turn rowname to column
-UBC_P450s <- UBC_P450s |> rownames_to_column("cds")
+UBC_P450s <- UBC_P450s %>% rownames_to_column("cds")
 
 str(UBC_P450s)
 # 'data.frame':	1066 obs. of  2 variables:
@@ -111,8 +111,11 @@ UBC_P450_stats$type <-
 # Number of types
 num_types <- length(unique(UBC_P450s$type))
 
-(UBC_P450_exp_plot <- 
-    P450_exp_plot(UBC_P450_stats, "UBC P450s Expression Plot", shapes[1:num_types]))
+UBC_P450_exp_plot <- 
+  P450_exp_plot(UBC_P450_stats, shapes[1:num_types])
+
+(UBC_P450_exp_plot <- UBC_P450_exp_plot + 
+    ggtitle("UBC P450s Expression Plot"))
 
 ggsave("results/figures/UBC_P450_expression.svg", plot = UBC_P450_exp_plot)
 
@@ -123,7 +126,7 @@ ggsave("results/figures/UBC_P450_expression.svg", plot = UBC_P450_exp_plot)
 JGI_dea_stats <- read.delim("results/jgi_dea_results.txt",
                             header = TRUE, stringsAsFactors = FALSE)
 str(JGI_dea_stats)
-# 'data.frame':	33989 obs. of  3 variables:
+# 'data.frame':	84192 obs. of  4 variables:
 
 
 # Read putative P450s CDS IDs from functional domain scan with hmmscan and rpsblast.
@@ -160,9 +163,9 @@ CYP76AA25 <-
 
 
 # Filter out low percent positive (V7) from BLASTp
-JGI_annotated_P450s <- JGI_annotated_P450s |> 
-  filter(V7 >= 90) |> 
-  select(V2) |> unique()
+JGI_annotated_P450s <- JGI_annotated_P450s %>% 
+  filter(V7 >= 90) %>% 
+  select(V2) %>% unique()
 
 str(JGI_annotated_P450s)
 # 'data.frame':	9 obs. of  1 variable:
@@ -173,7 +176,7 @@ JGI_P450s[CYP750B1,] <- "CYP750B1"
 JGI_P450s[CYP76AA25,] <- "CYP76AA25"
 
 # Turn rowname to column
-JGI_P450s <- JGI_P450s |> rownames_to_column("cds")
+JGI_P450s <- JGI_P450s %>% rownames_to_column("cds")
 
 str(JGI_P450s)
 # 'data.frame':	1763 obs. of  2 variables:
@@ -196,12 +199,13 @@ JGI_P450_stats$focus <-
 # Number of types
 num_types <- length(unique(JGI_P450s$type))
 
-(JGI_P450_exp_plot <- 
-  P450_exp_plot(JGI_P450_stats, "JGI P450s Expression Plot", shapes[1:num_types]))
+JGI_P450_exp_plot <- 
+  P450_exp_plot(JGI_P450_stats, shapes[1:num_types])
+
+(JGI_P450_exp_plot <- JGI_P450_exp_plot + 
+    ggtitle("JGI P450s Expression Plot"))
 
 (JGI_P450_exp_plot <- JGI_P450_exp_plot + 
   facet_wrap(~ focus, nrow = 2, strip.position = "right"))
 
 ggsave("results/figures/JGI_P450_expression.svg", plot = JGI_P450_exp_plot)
-
-#####
