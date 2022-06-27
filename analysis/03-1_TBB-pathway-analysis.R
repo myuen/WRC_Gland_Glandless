@@ -22,13 +22,13 @@ length(UBC_blast_result_files)
 # [1] 18
 
 
-ubc_tbb_blast_results <-
+UBC_TBB_blast_results <-
   map_df(UBC_blast_result_files, function(f){
   df <- read.delim(f, sep = "\t", 
                     stringsAsFactors = FALSE, header = FALSE)
 
-  metadata <- f |> 
-    str_match("(\\w+)-(\\d)-(\\w+).fasta.blastp_UBC_assembly.txt") |> 
+  metadata <- f %>% 
+    str_match("(\\w+)-(\\d)-(\\w+).fasta.blastp_UBC_assembly.txt") %>% 
     as.data.frame()
 
   df$pathway = metadata[,2]
@@ -37,17 +37,17 @@ ubc_tbb_blast_results <-
   return(df)
 })
 
-colnames(ubc_tbb_blast_results)[1:2] <- c("query", "cds")
+colnames(UBC_TBB_blast_results)[1:2] <- c("query", "cds")
 
-ubc_tbb_blast_results <- ubc_tbb_blast_results |> 
-  select("cds", "pathway", "step", "enzyme") |> 
+UBC_TBB_blast_results <- UBC_TBB_blast_results %>% 
+  select("cds", "pathway", "step", "enzyme") %>% 
   unique()
 
-str(ubc_tbb_blast_results)
+str(UBC_TBB_blast_results)
 # 'data.frame':	60 obs. of  4 variables:
 
-write.table(ubc_tbb_blast_results, 
-            "data/targeted-pathway-annotation/01-Terpenoid_backbone_biosynthesis/UBC_tbb_orthologs.txt", 
+write.table(UBC_TBB_blast_results, 
+            "data/targeted-pathway-annotation/01-Terpenoid_backbone_biosynthesis/UBC_TBB_orthologs.txt", 
             row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "\t")
 
 #####
@@ -62,13 +62,13 @@ length(JGI_blast_result_files)
 # [1] 18
 
 
-jgi_tbb_blast_results <-
+JGI_TBB_blast_results <-
   map_df(JGI_blast_result_files, function(f){
     df <- read.delim(f, sep = "\t", 
                      stringsAsFactors = FALSE, header = FALSE)
     
-    metadata <- f |> 
-      str_match("(\\w+)-(\\d)-(\\w+).fasta.blastp_JGI_assembly.txt") |> 
+    metadata <- f %>% 
+      str_match("(\\w+)-(\\d)-(\\w+).fasta.blastp_JGI_assembly.txt") %>% 
       as.data.frame()
     
     df$pathway = metadata[,2]
@@ -77,15 +77,15 @@ jgi_tbb_blast_results <-
     return(df)
   })
 
-colnames(jgi_tbb_blast_results)[1:2] <- c("query", "cds")
+colnames(JGI_TBB_blast_results)[1:2] <- c("query", "cds")
 
-jgi_tbb_blast_results <- jgi_tbb_blast_results |> 
-  select("cds", "pathway", "step", "enzyme") |> 
+JGI_TBB_blast_results <- JGI_TBB_blast_results %>% 
+  select("cds", "pathway", "step", "enzyme") %>% 
   unique()
 
-str(jgi_tbb_blast_results)
+str(JGI_TBB_blast_results)
 # 'data.frame':	90 obs. of  4 variables:
 
-write.table(jgi_tbb_blast_results, 
-            "data/targeted-pathway-annotation/01-Terpenoid_backbone_biosynthesis/JGI_tbb_orthologs.txt", 
+write.table(JGI_TBB_blast_results, 
+            "data/targeted-pathway-annotation/01-Terpenoid_backbone_biosynthesis/JGI_TBB_orthologs.txt", 
             row.names = FALSE, col.names = TRUE, quote = FALSE, sep = "\t")
