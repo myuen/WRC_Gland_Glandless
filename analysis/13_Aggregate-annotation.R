@@ -3,7 +3,8 @@ library(purrr)
 library(stringr)
 
 
-#Read annotation GFF3
+
+#Read genome annotations from GFF3 file
 gff3 <- read.delim("data/Tplicatav3.1c.primaryTrs.gff3", header = FALSE,
                    comment.char = "#", sep = "\t", stringsAsFactors = FALSE)
 
@@ -11,18 +12,20 @@ str(gff3)
 # 'data.frame':	293312 obs. of  9 variables:
 
 
-# Only keeping genes
+#Only keeping genes from GFF3 file
 scaffold_genes <- gff3 %>%
   filter(V3 == "gene") %>%
   select(4,5,9)
 
 colnames(scaffold_genes) <- 
-  c("gene_start", "gene_end", "attributes")
+  c("locus_start", "locus_end", "attributes")
 
 str(scaffold_genes)
 # 'data.frame':	39659 obs. of  3 variables:
 
-scaffold_genes$gene <-
+
+# Extracting gene names and respective locations
+scaffold_genes$locus <-
   map(str_split(scaffold_genes[,"attributes"], ";"), function(a){
     b = split(a[2], "=")
     c = str_split(b, "=")
@@ -32,54 +35,103 @@ scaffold_genes$gene <-
   }) %>% unlist()
 
 scaffold_genes <- scaffold_genes %>% 
-  select(gene, gene_start, gene_end)
+  select(locus, locus_start, locus_end)
 
-#####
-# Read UBC annotated DE contigs CDS annotations
+
+### Read DE statistics
+UBC_de_stats <- read.delim("results/ubc_dea_sig_results.txt", 
+                           stringsAsFactors = FALSE)
+
+colnames(UBC_de_stats)[1] <- "ctg_cds"
+
+
+# Read annotations
+### Read UBC DE CDS with NCBI annotations
 UBC_de_ncbi_annot <- read.delim("results/ubc_dea_sig_ncbi-annotated.txt")
 
 str(UBC_de_ncbi_annot)
-# 'data.frame':	2399 obs. of  5 variables:
+# 'data.frame':	1164 obs. of  3 variables:
 
+
+### Read UBC DE CDS with genome annotations
 UBC_de_genome_annot <- read.delim("results/ubc_dea_sig_genome-annotated.txt")
 
-UBC_de_genome_annot <- UBC_de_genome_annot %>% select(-c(logFC, adj.P.Val))
-
 str(UBC_de_genome_annot)
-# 'data.frame':	2399 obs. of  4 variables:
+# 'data.frame':	8612 obs. of  6 variables:
 
-UBC_annots <- left_join(UBC_de_ncbi_annot, UBC_de_genome_annot, by = "ctg_cds")
 
-UBC_annots <- left_join(UBC_annots, scaffold_genes, by = "gene")
-
-next_closest_DE_ctg <- UBC_annots %>%
-  select(scaffold, gene, gene_start, gene_end) %>% 
-  unique() %>% 
-  group_by(scaffold) %>%
-  arrange(gene_start) %>% 
-  mutate(closest_DE_gene = lead(gene_start) - gene_start) %>% 
-  ungroup() %>% 
-  select(gene, closest_DE_gene)
-
-next_closest_DE_ctg$closest_DE_gene <- 
-  abs(next_closest_DE_ctg$closest_DE_gene)
+### Aggregating annotations
+UBC_annots <- 
+  left_join(UBC_de_stats, UBC_de_ncbi_annot, by = "ctg_cds")
 
 UBC_annots <- 
-  left_join(UBC_annots, next_closest_DE_ctg, by = "gene")
+  left_join(UBC_annots, UBC_de_genome_annot, by = "ctg_cds")
 
-DE_count_by_scaffold <- UBC_annots[!is.na(UBC_annots$scaffold), ] %>% 
-  group_by(scaffold) %>% 
-  count()
+UBC_annots <- 
+  left_join(UBC_annots, scaffold_genes, by = "locus")
 
-max(DE_count_by_scaffold$n)
-# [1] 10
+str(UBC_annots)
+# 'data.frame':	8639 obs. of  12 variables:
 
-###
+write.table(UBC_annots, "results/ubc_dea_sig_aggregated-annotation.txt",
+            sep = "\t", quote = FALSE, row.names = FALSE)
 
-JGI_DE_CDS_on_scaffold <- 
-  read.delim("data/jgi_dea_sig.blastWRCv3Annotation.txt",
-             stringsAsFactors = FALSE, sep = "\t", col.names = blast_header) %>% 
-  select(-c("staxid", "sskingdom", "sscinames", "scomnames"))
 
-str(JGI_DE_CDS_on_scaffold)
-# 'data.frame':	103175 obs. of  16 variables:
+### Repeat workflow on JGI dataset
+JGI_de_stats <- read.delim("results/jgi_dea_sig_results.txt", 
+                           stringsAsFactors = FALSE)
+
+colnames(JGI_de_stats)[1] <- "ctg_cds"
+
+JGI_young_de <- JGI_de_stats %>% 
+  filter(focus == "gYoung_glYoung") %>% 
+  select(-focus)
+
+JGI_mature_de <- JGI_de_stats %>% 
+  filter(focus == "gMature_glMature") %>% 
+  select(-focus)
+
+
+JGI_de_ncbi_annot <- read.delim("results/jgi_dea_sig_ncbi-annotated.txt")
+
+str(JGI_de_ncbi_annot)
+# 'data.frame':	15848 obs. of  3 variables:
+
+
+JGI_de_genome_annot <- read.delim("results/jgi_dea_sig_genome-annotated.txt")
+
+str(JGI_de_genome_annot)
+# 'data.frame':	88069 obs. of  6 variables:
+
+
+### Aggregating annotations
+JGI_young_annots <- 
+  left_join(JGI_young_de, JGI_de_ncbi_annot, by = "ctg_cds")
+
+JGI_young_annots <- 
+  left_join(JGI_young_annots, JGI_de_genome_annot, by = "ctg_cds")
+
+JGI_young_annots <- 
+  left_join(JGI_young_annots, scaffold_genes, by = "locus")
+
+str(JGI_young_annots)
+# 'data.frame':	91416 obs. of  12 variables:
+
+write.table(JGI_young_annots, "results/jgi_young_dea_sig_aggregated-annotation.txt",
+            sep = "\t", quote = FALSE, row.names = FALSE)
+
+
+JGI_mature_annots <- 
+  left_join(JGI_mature_de, JGI_de_ncbi_annot, by = "ctg_cds")
+
+JGI_mature_annots <- 
+  left_join(JGI_mature_annots, JGI_de_genome_annot, by = "ctg_cds")
+
+JGI_mature_annots <- 
+  left_join(JGI_mature_annots, scaffold_genes, by = "locus")
+
+str(JGI_mature_annots)
+# 'data.frame':	2058 obs. of  12 variables:
+
+write.table(JGI_mature_annots, "results/jgi_mature_dea_sig_aggregated-annotation.txt",
+            sep = "\t", quote = FALSE, row.names = FALSE)
