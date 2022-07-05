@@ -11,11 +11,11 @@ gene_function <-
 
 #Remove emtpy function description
 gene_function <- 
-  gene_function %>% filter(!description == "")
+  gene_function %>% filter(!domain_description == "")
 
 str(gene_function)
-# 'data.frame':	132271 obs. of  4 variables:
-  
+# 'data.frame':	168191 obs. of  4 variables:
+
 #####
   
 #BLAST header
@@ -36,11 +36,17 @@ str(ubc_genome_blast)
 # 'data.frame':	13669 obs. of  16 variables:
 
 
+# Filter BLAST results
 ubc_genome_blast <- ubc_genome_blast %>%
   filter(ppos >= 95 & qcovs >= 50)
 
 str(ubc_genome_blast)
 # 'data.frame':	2150 obs. of  5 variables:
+
+ubc_genome_blast %>% select(ctg_cds) %>% unique() %>% count()
+#      n
+# 1 1610
+# We only left with 1610 cds that pass the filter
 
 
 #Take the top best hit from BLAST
@@ -49,6 +55,10 @@ ubc_top_genome_blast <- ubc_genome_blast %>%
   arrange(ppos, qcovs) %>% 
   slice_head(n = 1) %>% 
   ungroup()
+
+str(ubc_top_genome_blast)
+# tibble [1,610 × 5] (S3: tbl_df/tbl/data.frame)
+
 
 ubc_top_genome_blast$locus <- 
   str_replace(ubc_top_genome_blast$mRNA, "\\.\\d$", "")
@@ -76,6 +86,8 @@ jgi_genome_blast <-
 str(jgi_genome_blast)
 # 'data.frame':	103175 obs. of  16 variables:
 
+
+# Filter BLAST results
 jgi_genome_blast <- jgi_genome_blast %>%
   filter(ppos >= 95 & qcovs >= 50)
 
