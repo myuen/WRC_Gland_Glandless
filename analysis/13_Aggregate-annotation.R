@@ -44,6 +44,9 @@ UBC_de_stats <- read.delim("results/ubc_dea_sig_results.txt",
 
 colnames(UBC_de_stats)[1] <- "ctg_cds"
 
+str(UBC_de_stats)
+# 'data.frame':	2399 obs. of  3 variables:
+
 
 # Read annotations
 ### Read UBC DE CDS with NCBI annotations
@@ -54,24 +57,27 @@ str(UBC_de_ncbi_annot)
 
 
 ### Read UBC DE CDS with genome annotations
-UBC_de_genome_annot <- read.delim("results/ubc_dea_sig_genome-annotated.txt")
+UBC_de_genome_annot <- read.delim("results/ubc_dea_sig_genome-annotated.txt",
+                                  stringsAsFactors = FALSE)
 
 str(UBC_de_genome_annot)
-# 'data.frame':	8612 obs. of  6 variables:
+# 'data.frame':	9484 obs. of  6 variables:
 
 
 ### Aggregating annotations
 UBC_annots <- 
-  left_join(UBC_de_stats, UBC_de_ncbi_annot, by = "ctg_cds")
-
-UBC_annots <- 
-  left_join(UBC_annots, UBC_de_genome_annot, by = "ctg_cds")
+  left_join(UBC_de_stats, UBC_de_genome_annot, by = "ctg_cds")
 
 UBC_annots <- 
   left_join(UBC_annots, scaffold_genes, by = "locus")
 
-str(UBC_annots)
-# 'data.frame':	8639 obs. of  12 variables:
+UBC_annots <- UBC_annots %>% select(
+  "ctg_cds", "logFC", "adj.P.Val",
+  "scaffold", "locus", "locus_start", "locus_end",
+  "domain_id", "domain_source", "domain_desc")
+  
+UBC_annots <- 
+  left_join(UBC_annots, UBC_de_ncbi_annot, by = "ctg_cds")
 
 write.table(UBC_annots, "results/ubc_dea_sig_aggregated-annotation.txt",
             sep = "\t", quote = FALSE, row.names = FALSE)
@@ -105,33 +111,56 @@ str(JGI_de_genome_annot)
 
 
 ### Aggregating annotations
-JGI_young_annots <- 
-  left_join(JGI_young_de, JGI_de_ncbi_annot, by = "ctg_cds")
+UBC_annots <- 
+  left_join(UBC_de_stats, UBC_de_genome_annot, by = "ctg_cds")
 
+UBC_annots <- 
+  left_join(UBC_annots, scaffold_genes, by = "locus")
+
+UBC_annots <- 
+  left_join(UBC_annots, UBC_de_ncbi_annot, by = "ctg_cds")
+
+
+
+###
 JGI_young_annots <- 
-  left_join(JGI_young_annots, JGI_de_genome_annot, by = "ctg_cds")
+  left_join(JGI_young_de, JGI_de_genome_annot, by = "ctg_cds")
 
 JGI_young_annots <- 
   left_join(JGI_young_annots, scaffold_genes, by = "locus")
 
+JGI_young_annots <- JGI_young_annots %>% select(
+  "ctg_cds", "logFC", "adj.P.Val",
+  "scaffold", "locus", "locus_start", "locus_end",
+  "domain_id", "domain_source", "domain_desc")
+
+JGI_young_annots <- 
+  left_join(JGI_young_annots, JGI_de_ncbi_annot, by = "ctg_cds")
+
 str(JGI_young_annots)
-# 'data.frame':	91416 obs. of  12 variables:
+# 'data.frame':	110240 obs. of  12 variables:
 
 write.table(JGI_young_annots, "results/jgi_young_dea_sig_aggregated-annotation.txt",
             sep = "\t", quote = FALSE, row.names = FALSE)
 
+###
 
 JGI_mature_annots <- 
-  left_join(JGI_mature_de, JGI_de_ncbi_annot, by = "ctg_cds")
-
-JGI_mature_annots <- 
-  left_join(JGI_mature_annots, JGI_de_genome_annot, by = "ctg_cds")
+  left_join(JGI_mature_de, JGI_de_genome_annot, by = "ctg_cds")
 
 JGI_mature_annots <- 
   left_join(JGI_mature_annots, scaffold_genes, by = "locus")
 
+JGI_mature_annots <- JGI_mature_annots %>% select(
+  "ctg_cds", "logFC", "adj.P.Val",
+  "scaffold", "locus", "locus_start", "locus_end",
+  "domain_id", "domain_source", "domain_desc")
+
+JGI_mature_annots <- 
+  left_join(JGI_mature_annots, JGI_de_ncbi_annot, by = "ctg_cds")
+
 str(JGI_mature_annots)
-# 'data.frame':	2058 obs. of  12 variables:
+# 'data.frame':	2413 obs. of  12 variables:
 
 write.table(JGI_mature_annots, "results/jgi_mature_dea_sig_aggregated-annotation.txt",
             sep = "\t", quote = FALSE, row.names = FALSE)
