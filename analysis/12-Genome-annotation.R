@@ -7,7 +7,7 @@ library(stringr)
 gene_function <- 
   read.delim("data/gene.functions.txt", comment.char = "#",
              stringsAsFactors = FALSE,
-             col.names = c("locus", "ID", "source", "description"))
+             col.names = c("locus", "domain_id", "domain_source", "domain_desc"))
 
 #Remove emtpy function description
 gene_function <- 
@@ -94,7 +94,7 @@ jgi_top_genome_blast <- jgi_genome_blast %>%
 jgi_top_genome_blast$locus <- 
   str_replace(jgi_top_genome_blast$mRNA, "\\.\\d$", "")
 
-jgi_genome_blast$scaffold <- jgi_genome_blast$locus %>% 
+jgi_top_genome_blast$scaffold <- jgi_top_genome_blast$locus %>%
   str_replace("Thupl.", "") %>% str_replace("s\\d+", "")
 
 jgi_top_genome_blast <- jgi_top_genome_blast %>%
