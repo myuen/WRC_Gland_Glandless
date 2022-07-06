@@ -11,10 +11,11 @@ gene_function <-
 
 #Remove emtpy function description
 gene_function <- 
-  gene_function %>% filter(!domain_description == "")
+  gene_function %>% 
+  filter(!domain_desc == "")
 
 str(gene_function)
-# 'data.frame':	168191 obs. of  4 variables:
+# 'data.frame':	132271 obs. of  4 variables:
 
 #####
   
@@ -28,7 +29,7 @@ blast_header <-
 
 # Read BLAST results
 ubc_genome_blast <- 
-  read.delim("data/ubc_dea_sig.blastWRCv3Annotation.txt", sep = "\t",
+  read.delim("results/ubc_dea_sig.blastWRCv3Annotation.txt", sep = "\t",
              stringsAsFactors = FALSE, col.names = blast_header) %>% 
   select(ctg_cds, mRNA, ppos, qcovs, salltitles)
 
@@ -79,7 +80,7 @@ write.table(UBC_annots, "results/ubc_dea_sig_genome-annotated.txt",
 
 # Read BLAST results
 jgi_genome_blast <- 
-  read.delim("data/jgi_dea_sig.blastWRCv3Annotation.txt", sep = "\t", 
+  read.delim("results/jgi_dea_sig.blastWRCv3Annotation.txt", sep = "\t", 
              stringsAsFactors = FALSE, col.names = blast_header) %>% 
   select(ctg_cds, mRNA, ppos, qcovs, salltitles)
 
