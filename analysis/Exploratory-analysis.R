@@ -1,122 +1,189 @@
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 
 
-UBC_annots <- read.delim("results/ubc_dea_sig_aggregated-annotation.txt")
+UBC_annots <- 
+  read.delim("results/ubc_dea_sig_aggregated-annotation.txt")
 
-# How many number of scaffolds contain DE contigs?
-(num_scaffolds_with_DE_ctgs <- UBC_annots %>% 
-  filter(!is.na(scaffold)) %>% 
-  select(scaffold) %>% 
-  unique())
 
+# Note scaffold is read as character instead of integer.  Some scaffold
+# name contain character '-'
+UBC_annots$scaffold <- as.character(UBC_annots$scaffold)
+
+
+scaffold_length <- 
+  read.delim("data/genome_scaffold_length.tsv", header = FALSE, 
+             col.names = c("scaffold", "length"), 
+             stringsAsFactors = FALSE)
+
+
+# 1. How many number of scaffolds contain DE contigs?
 (UBC_annots %>% 
-    filter(!is.na(scaffold))) %>% 
-  select(scaffold) %>% 
-  unique() %>% 
-  count()
-
-#     n
-# 1 909
+    filter(!is.na(scaffold)) %>% 
+    select(scaffold) %>% 
+    unique() %>% 
+    count())
+# 909
 
 
-# How many DE locus on ***a single*** scaffolds?
-(num_DE_locus_per_scaffold <- UBC_annots %>% 
+# 2. How many DE locus on ***a single*** scaffolds?
+(num_DE_locus_by_scaffold <- UBC_annots %>% 
   filter(!is.na(scaffold)) %>% 
   group_by(scaffold) %>% 
   select(scaffold, locus) %>%
   unique() %>% 
-  count() %>% 
-  ungroup())
+  count(name = "num_DE_locus") %>% 
+  ungroup()
+)
 
-str(num_DE_locus_per_scaffold)
+str(num_DE_locus_by_scaffold)
 # tibble [909 × 2] (S3: tbl_df/tbl/data.frame)
 
-colnames(num_DE_locus_per_scaffold)[2] <- "count"
+
+# Add scaffold length 
+num_DE_locus_by_scaffold <- 
+  left_join(num_DE_locus_by_scaffold, scaffold_length, by = "scaffold")
 
 # Minimum # of DE contig on ***a single*** scaffold
-min(num_DE_locus_per_scaffold$count)
+min(num_DE_locus_by_scaffold$num_DE_locus)
 # [1] 1
 
 # Maximum # of DE contig on ***a single*** scaffold
-max(num_DE_locus_per_scaffold$count)
+max(num_DE_locus_by_scaffold$num_DE_locus)
 # [1] 8
 
 
-# Plot for counts of # of DE contigs per scaffold 
-count_num_DE_locus <- num_DE_locus_per_scaffold %>% 
-  group_by(count) %>% 
-  count() %>% 
-  ungroup()
+# Tabulate counts of scaffolds by num of DE locus
+(count_of_scaffold_by_DE_locus <- 
+    num_DE_locus_by_scaffold %>% 
+    group_by(num_DE_locus) %>% 
+    count(name = "num_scaffolds") %>% 
+    ungroup()
+)
 
-#   count     n
-# 1     1   709
-# 2     2   144
-# 3     3    39
-# 4     4    11
-# 5     5     4
-# 6     6     1
-# 7     8     1
+#   num_DE_locus num_scaffolds
+# 1            1           709
+# 2            2           144
+# 3            3            39
+# 4            4            11
+# 5            5             4
+# 6            6             1
+# 7            8             1
 
-max_x <- max(count_num_DE_locus$count)
-max_y <- max(count_num_DE_locus$n)
+max_x <- max(count_of_scaffold_by_DE_locus$num_DE_locus)
+max_y <- max(count_of_scaffold_by_DE_locus$num_scaffolds)
 
-ggplot(count_num_DE_locus, aes(x = count, y = n)) + 
+# labs(caption = expression(paste0("Differential expression = >caption here", beta))) +
+
+
+(p <- ggplot(count_of_scaffold_by_DE_locus, aes(x = num_DE_locus, y = num_scaffolds)) + 
   geom_point(size = 2) +
-  geom_line() +
-  scale_x_continuous("Number of DE contigs",
-                     breaks = c(1:max_x), labels = c(1:max_x)) + 
-  scale_y_continuous("Number of scaffolds", breaks = seq(0, max_y, 100)) +
+
   ggtitle("Exploring the Genome",
-    subtitle = "Counts of number of differential expressed locus/loci per scaffolds") +
+          subtitle = "Number of DE locus per scaffolds") +
+  
+  labs(caption = "|logFC| \u2265 2,  Adj. p-value \u2264 0.05")+
+
+  scale_x_continuous("Number of DE locus",
+                     breaks = c(1:max_x), labels = c(1:max_x)) +
+    
+  scale_y_continuous("Number of scaffolds", breaks = seq(1, max_y, 100)) +
+
   theme_bw()
+)
+
+
+(q <- ggplot(num_DE_locus_by_scaffold, 
+             aes(x = num_DE_locus, y = length, group = num_DE_locus)) + 
+    geom_jitter(colour = "grey") + 
+    geom_boxplot(colour = "black", fill = "white", width = 0.35) +
+    
+    ggtitle("",
+            subtitle = "Scaffold Length") +
+
+    scale_x_continuous("Number of DE locus",
+                       breaks = c(1:max_x), labels = c(1:max_x)) +
+    ylab("Scaffold Length") +
+    
+    theme_bw()
+)
+
+p + q
+
+ggsave("results/figures/DE_locus_with_length.svg", p+q)
+
+
+#####
 
 
 # For scaffold with more than 1 DE locus, calculate the closest distance to 
 # the next DE locus
-gt_one_DE_locus <- num_DE_locus_per_scaffold %>% 
-  filter(count > 1) %>% 
+
+# Get scaffold ID for those with more than 1 DE locus
+gt_one_DE_locus <- num_DE_locus_by_scaffold %>% 
+  filter(num_DE_locus > 1) %>% 
   select(scaffold)
 
-gt_one_DE_locus <- as.integer(gt_one_DE_locus$scaffold)
+gt_one_DE_locus <- as.character(gt_one_DE_locus$scaffold)
 
 
+# Find the next closest DE locus
 next_closest_DE_by_locus <-
   UBC_annots %>%
-  filter(scaffold %in% gt_one_DE_locus) %>% 
-  select(scaffold, locus, locus_start, locus_end) %>% 
-  unique() %>% 
-  group_by(scaffold) %>%
-  arrange(locus_start) %>% 
-  mutate(closest_DE_locus = lead(locus_start)-locus_start) %>% 
-  filter(!is.na(closest_DE_locus)) %>%
-  ungroup()
+  filter(scaffold %in% gt_one_DE_locus) %>%
+  select(scaffold, locus, start, end) %>%
+  unique() %>%
+  group_by(scaffold) %>% 
+  arrange(start) %>% 
+  mutate(closest_DE_locus = start-lag(start)) %>% 
+  ungroup() %>% 
+  arrange(scaffold)
 
 
 # Plot next closest DE locus
-min_x <- ceiling(min(next_closest_DE_by_locus$closest_DE_locus)/1000)
-max_x <- max(next_closest_DE_by_locus$closest_DE_locus)/1000
+# min_x <- ceiling(min(next_closest_DE_by_locus$closest_DE_locus)/1000)
+min_x <- next_closest_DE_by_locus %>% 
+  filter(!is.na(closest_DE_locus)) %>% 
+  select(closest_DE_locus) %>% 
+  min() / 1000
+# max_x <- max(next_closest_DE_by_locus$closest_DE_locus)/1000
 
-ggplot(next_closest_DE_by_locus, aes(closest_DE_locus/1000)) + 
+max_x <- next_closest_DE_by_locus %>% 
+  filter(!is.na(closest_DE_locus)) %>% 
+  select(closest_DE_locus) %>% 
+  max() / 1000
+
+(g <- ggplot(next_closest_DE_by_locus, aes(closest_DE_locus/1000)) + 
   geom_density() +
   ggtitle("Exploring the Genome", 
-          subtitle = paste0("Next closest differentially expressed locus ",
-          "on the same scaffold")) + 
+          subtitle = expression(paste("Next closest differentially ",
+          "expressed locus on the ", bold("same scaffold")))) +
   scale_x_continuous("Distance (kbp)",
                      breaks = c(min_x, seq(1000, max_x, 1000)),
                      labels = c(min_x, seq(1000, max_x, 1000))) +
   scale_y_continuous("", labels = NULL) +
   theme_bw()
+)
+
+ggsave("results/figures/Next_closest_DE.svg", g)
 
 
-# Most happened PFAM domain
-UBC_annots$description <- toupper(UBC_annots$description)
+##### Work in progress #####
+
+# Most happened PFAM domain.  Captitalized all description to
+# remove redundancy
+UBC_annots$domain_desc <- toupper(UBC_annots$domain_desc)
 
 pfam_count <- UBC_annots %>% 
-  filter(source == "PFAM") %>% 
-  select(ID, description) %>% 
-  group_by(ID, description) %>% 
+  filter(scaffold %in% gt_one_DE_locus) %>% 
+  filter(domain_source == "PFAM") %>% 
+  group_by(scaffold, locus) %>% 
+  select(scaffold, locus, domain_id, domain_desc) %>%
+  unique() %>% 
   count() %>% 
   ungroup()
 
-top20_pfam <- slice_max(pfam_count, order_by = n, n = 20)
+top50_pfam <- slice_max(pfam_count, order_by = n, n = 50)
+
+###
