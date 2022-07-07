@@ -61,14 +61,12 @@ str(ubc_top_genome_blast)
 # tibble [1,610 × 5] (S3: tbl_df/tbl/data.frame)
 
 
-ubc_top_genome_blast$locus <- 
+ubc_top_genome_blast$locus <-
   str_replace(ubc_top_genome_blast$mRNA, "\\.\\d$", "")
 
-ubc_top_genome_blast$scaffold <- ubc_top_genome_blast$locus %>% 
-  str_replace("Thupl.", "") %>% str_replace("s\\d+", "")
-
 ubc_top_genome_blast <- ubc_top_genome_blast %>%
-  select(ctg_cds, scaffold, locus)
+  select(ctg_cds, locus, mRNA)
+
 
 #Add gene function
 UBC_annots <- left_join(ubc_top_genome_blast, gene_function, by = "locus")
@@ -107,11 +105,8 @@ jgi_top_genome_blast <- jgi_genome_blast %>%
 jgi_top_genome_blast$locus <- 
   str_replace(jgi_top_genome_blast$mRNA, "\\.\\d$", "")
 
-jgi_top_genome_blast$scaffold <- jgi_top_genome_blast$locus %>%
-  str_replace("Thupl.", "") %>% str_replace("s\\d+", "")
-
 jgi_top_genome_blast <- jgi_top_genome_blast %>%
-  select(ctg_cds, scaffold, locus)
+  select(ctg_cds, locus, mRNA)
 
 #Add gene function
 JGI_annots <- 
