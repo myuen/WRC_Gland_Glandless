@@ -96,8 +96,8 @@ max_y <- max(count_of_scaffold_by_DE_locus$num_scaffolds)
 
 (q <- ggplot(num_DE_locus_by_scaffold, 
              aes(x = num_DE_locus, y = length, group = num_DE_locus)) + 
-    geom_jitter(colour = "grey") + 
-    geom_boxplot(colour = "black", fill = "white", width = 0.35) +
+    geom_jitter(colour = "grey60", alpha = 0.75, width = 0.2) + 
+    geom_boxplot(colour = "black", fill = "white", width = 0.35, alpha = 0.5) +
     
     ggtitle("",
             subtitle = "Scaffold Length") +
@@ -172,7 +172,8 @@ ggsave("results/figures/Next_closest_DE.svg", g)
 # Capitalized descriptions to remove redundancy
 UBC_annots$domain_desc <- toupper(UBC_annots$domain_desc)
 
-# Most abundant PFAM domains.
+
+# Most abundant PFAM domains by count
 pfam_count <- UBC_annots %>% 
   filter(domain_source == "PFAM") %>% 
   select(domain_id, domain_desc) %>% 
@@ -184,20 +185,10 @@ top20_pfam_stats <-
   UBC_annots %>% 
   filter(domain_id %in% top20_pfam$domain_id)
 
-# top20_pfam_col <- top20_pfam %>%
-#   select(-count) %>%
-#   unique()
-# col <- rep("red", 22)
-# names(col) <- top20_pfam$domain_id
-# top20_pfam_id <- as.character(top20_pfam_labels$domain_id)
-# top20_pfam_desc <- as.character(top20_pfam_labels$domain_desc)
-# names(top20_pfam_desc) <- top20_pfam_id
-
-
 ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) + 
   geom_boxplot() +
   geom_vline(xintercept = c(-2, 2), linetype = "dashed") +
-  ggtitle("Top 20 most abundant PFAM domain") +
+  ggtitle("Top 20 most abundant PFAM domain with gene expression") +
   xlab(expression(paste("log"[2],"FC"))) +
   ylab("Domain Description") +
   scale_y_discrete(
@@ -206,42 +197,9 @@ ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) +
       "PF00201" = "UDP-GLUCORONOSYL AND UDP-GLUCOSYL TRANSFERASE",
       "PF00560" = "LEUCINE RICH REPEAT",
       "PF01397" = "TERPENE SYNTHASE, N-TERMINAL DOMAIN",
-      "PF03171" = "2OG-FE(II) OXYGENASE SUPERFAMILY",
+      # "PF03171" = "2OG-FE(II) OXYGENASE SUPERFAMILY",
       "PF03936" = "TERPENE SYNTHASE FAMILY, METAL BINDING DOMAIN",
       "PF07693" = "KAP FAMILY P-LOOP DOMAIN",
       "PF07714" = "PROTEIN TYROSINE KINASE")) +
   theme_bw()
 
-### WORK IN PROGRESS ###
-
-# Most abundant PFAM domains in gland
-# top100_gland <- slice_max(UBC_annots, order_by = logFC, n = 100) %>% 
-#   filter(domain_source == "PFAM")
-
-top_gland <-
-  UBC_annots %>% 
-  filter(!is.na(scaffold) & domain_source == "PFAM") %>% 
-  select(ctg_cds, logFC, domain_id, domain_desc) %>% 
-  group_by(ctg_cds) %>%
-  slice_head(n = 10) %>% 
-  ungroup()
-
-ggplot(top50_gland, aes(x = logFC, y = domain_desc)) + 
-  geom_boxplot() +
-  geom_vline(xintercept = c(-2, 2), linetype = "dashed") +
-  ggtitle("Top 20 most abundant PFAM domain") +
-  xlab(expression(paste("log"[2],"FC"))) +
-  ylab("Domain Description") +
-  theme_bw()
-
-
-# top100_glandless <- slice_min(UBC_annots, order_by = logFC, n = 100) %>% 
-#   filter(domain_source == "PFAM")
-# 
-# ggplot(top100_glandless, aes(x = logFC, y = domain_desc)) + 
-#   geom_boxplot() +
-#   geom_vline(xintercept = c(-2, 2), linetype = "dashed") +
-#   ggtitle("Top 20 most abundant PFAM domain") +
-#   xlab(expression(paste("log"[2],"FC"))) +
-#   ylab("Domain Description") +
-#   theme_bw()
