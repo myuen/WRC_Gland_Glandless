@@ -179,11 +179,12 @@ pfam_count <- UBC_annots %>%
   select(domain_id, domain_desc) %>% 
   count(domain_id, domain_desc, name = "count", sort = TRUE)
 
-top20_pfam <- pfam_count %>% slice_max(count, n = 20)
+(top20_pfam <- pfam_count %>% slice_max(count, n = 20))
 
 top20_pfam_stats <-
   UBC_annots %>% 
   filter(domain_id %in% top20_pfam$domain_id)
+
 
 ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) + 
   geom_boxplot() +
@@ -193,11 +194,9 @@ ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) +
   ylab("Domain Description") +
   scale_y_discrete(
     labels = c(
-      # "PF00067" = "CYTOCHROME P450",
       "PF00201" = "UDP-GLUCORONOSYL AND UDP-GLUCOSYL TRANSFERASE",
       "PF00560" = "LEUCINE RICH REPEAT",
       "PF01397" = "TERPENE SYNTHASE, N-TERMINAL DOMAIN",
-      # "PF03171" = "2OG-FE(II) OXYGENASE SUPERFAMILY",
       "PF03936" = "TERPENE SYNTHASE FAMILY, METAL BINDING DOMAIN",
       "PF07693" = "KAP FAMILY P-LOOP DOMAIN",
       "PF07714" = "PROTEIN TYROSINE KINASE")) +
