@@ -9,10 +9,11 @@ AKR_exp_plot <- function(stats) {
   bound <- ceiling(max(abs(stats$logFC)))
   
   ggplot(stats, aes(x = logFC, y = cds)) +
-  geom_point(size = 2) +
-  scale_x_continuous(limits = c(-bound, bound), 
-                     breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
-  scale_y_discrete(labels = NULL) +
+    geom_point(size = 2, aes(shape = factor(type))) +
+    scale_x_continuous(limits = c(-bound, bound), 
+                       breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
+    scale_y_discrete(labels = NULL) +
+    scale_shape_manual("", values = 1) +
 
   labs(caption = "p-value <= 0.05") +
   xlab(expression(paste("log"[2],"FC"))) +
@@ -47,10 +48,13 @@ length(UBC_putative_AKRs)
 # [1] 217
 
 
-UBC_AKR_stats <- UBC_dea_stats |> filter(cds %in% UBC_putative_AKRs)
+UBC_AKR_stats <- UBC_dea_stats %>% 
+  filter(cds %in% UBC_putative_AKRs)
 
 str(UBC_AKR_stats)
 # 'data.frame':	100 obs. of  3 variables:
+
+UBC_AKR_stats$type <- "Putative"
 
 UBC_AKR_exp_plot <- AKR_exp_plot(UBC_AKR_stats)
 
@@ -78,10 +82,13 @@ length(JGI_putative_AKRs)
 # [1] 770
 
 
-JGI_AKR_stats <- JGI_dea_stats |> filter(cds %in% JGI_putative_AKRs)
+JGI_AKR_stats <- JGI_dea_stats %>% 
+  filter(cds %in% JGI_putative_AKRs)
 
 str(JGI_AKR_stats)
 # 'data.frame':	248 obs. of  4 variables:
+
+JGI_AKR_stats$type <- "Putative"
 
 JGI_AKR_stats$focus <- factor(JGI_AKR_stats$focus, 
                               levels = c("gYoung_glYoung", "gMature_glMature"))
