@@ -7,19 +7,23 @@ library(tibble)
 
 TPS_exp_plot <- function(stats) {
 
+  legend_for_annotated <- 
+    substitute(paste(italic('in silico'), ' predicted mono-TPS'^1))
+  
   bound <- ceiling(max(abs(stats$logFC)))
   
   ggplot(stats, aes(x = logFC, y = cds)) +
   geom_point(size = 2.5, aes(shape = type)) +
+
   scale_x_continuous(limits = c(-bound, bound), 
                      breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
   scale_y_discrete(labels = NULL) +
   scale_shape_manual(name = "",
-                     # labels = c("Putative", "Annotated", "Sabinene Synthase"),
-                     # labels = character(stats$type),
+                     labels = c("Annotated" = legend_for_annotated),
                      values = c(1, 19, 15)) +
 
-  labs(caption = "p-value <= 0.05") +
+  labs(caption = 
+         expression(paste("p-value <= 0.05\t", ""^1, "Shalev T et al. (2018)"))) +
   xlab(expression(paste("log"[2],"FC"))) +
   ylab("") +
   
