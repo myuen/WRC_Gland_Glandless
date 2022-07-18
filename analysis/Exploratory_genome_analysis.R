@@ -1,5 +1,6 @@
 library(dplyr)
 library(ggplot2)
+library(gt)
 library(patchwork)
 
 
@@ -10,6 +11,18 @@ UBC_annots <-
 # Note scaffold is read as character instead of integer.  Some scaffold
 # name contain character '-'
 UBC_annots$scaffold <- as.character(UBC_annots$scaffold)
+
+UBC_annots %>% 
+  filter(logFC >= 0) %>% 
+  select(ctg_cds) %>% 
+  unique() %>% count()
+# 1 1726
+
+UBC_annots %>% 
+  filter(logFC <= 0) %>% 
+  select(ctg_cds) %>% 
+  unique() %>% count()
+# 1 673
 
 
 scaffold_length <- 
@@ -134,24 +147,26 @@ next_closest_DE_by_locus <-
   filter(scaffold %in% gt_one_DE_locus) %>%
   select(scaffold, locus, start, end) %>%
   unique() %>%
-  group_by(scaffold) %>% 
-  arrange(start) %>% 
-  mutate(closest_DE_locus = start-lag(start)) %>% 
-  ungroup() %>% 
+  group_by(scaffold) %>%
+  arrange(start) %>%
+  mutate(closest_DE_locus = start-lag(start)) %>%
+  ungroup() %>%
   arrange(scaffold)
 
-
 # Plot next closest DE locus
-# min_x <- ceiling(min(next_closest_DE_by_locus$closest_DE_locus)/1000)
-min_x <- next_closest_DE_by_locus %>% 
-  filter(!is.na(closest_DE_locus)) %>% 
+(min_x <- next_closest_DE_by_locus %>% 
+  filter(closest_DE_locus > 0) %>% 
   select(closest_DE_locus) %>% 
   min() / 1000
+)
+# [1] 2.996
 
-max_x <- next_closest_DE_by_locus %>% 
-  filter(!is.na(closest_DE_locus)) %>% 
+(max_x <- next_closest_DE_by_locus %>% 
+  filter(closest_DE_locus > 0) %>% 
   select(closest_DE_locus) %>% 
   max() / 1000
+) 
+# [1] 8088.799
 
 (g <- ggplot(next_closest_DE_by_locus, aes(closest_DE_locus/1000)) + 
   geom_density() +
@@ -168,7 +183,111 @@ max_x <- next_closest_DE_by_locus %>%
 ggsave("results/figures/Next_closest_DE.svg", g)
 
 
-##### Work in progress #####
+# Find the next closest DE by gene of interest (goi)
+tbb <- 
+  read.delim("data/targeted-pathway-annotation/01-Terpenoid_backbone_biosynthesis/UBC_TBB_orthologs.txt")
+
+tbb <- tbb %>% mutate(type = "tbb") %>% 
+  select(cds, type)
+
+tps <- 
+  read.delim("data/targeted-pathway-annotation/02-TPS/putative_TPS.UBC_assembly.cdsID.txt",
+             col.names = c("cds")) %>% 
+  mutate(type = "tps")
+
+p450 <- 
+  read.delim("data/targeted-pathway-annotation/03-P450/putative_P450.UBC_assembly.cdsID.txt", 
+             col.names = c("cds")) %>% 
+  mutate(type = "p450")
+
+sdr <- 
+  read.delim("data/targeted-pathway-annotation/04-SDR_ADH/putative_SDR.UBC_assembly.cdsID.txt",
+             col.names = c("cds")) %>%
+  mutate(type = "sdr")
+
+akr <- 
+  read.delim("data/targeted-pathway-annotation/05-Aldo-keto-reductase/putative_AKR.UBC_assembly.cdsID.txt",
+             col.names = c("cds")) %>%
+  mutate(type = "akr")
+
+goi <- rbind(tbb, tps,p450, sdr, akr) %>% 
+  unique()
+# 'data.frame':	2229 obs. of  2 variables:
+
+next_closest_DE_by_goi <-
+  inner_join(UBC_annots, goi, by = c("ctg_cds" = "cds")) %>% 
+  filter(scaffold %in% gt_one_DE_locus) %>% 
+  select(scaffold, locus, start, end, type) %>%
+  unique() %>%
+  group_by(scaffold) %>%
+  arrange(start) %>%
+  mutate(closest_DE_locus = start-lag(start)) %>%
+  ungroup() %>%
+  arrange(scaffold)
+
+(min_x <- next_closest_DE_by_goi %>% 
+    filter(closest_DE_locus > 0) %>% 
+    select(closest_DE_locus) %>% 
+    min() / 1000
+)
+# [1] 8.218
+
+(max_x <- next_closest_DE_by_goi %>% 
+    filter(closest_DE_locus > 0) %>% 
+    select(closest_DE_locus) %>% 
+    max() / 1000
+) 
+# [1] 4068.358
+
+(goi_plot <- ggplot(next_closest_DE_by_goi, aes(closest_DE_locus/1000)) + 
+    geom_density() +
+    ggtitle("Exploring the Genome", 
+            subtitle = expression(paste("Next closest differentially ",
+                                        "expressed locus by ", bold("gene of interests "),
+                                        "on the ", bold("same scaffold")))) +
+    scale_x_continuous("Distance (kbp)",
+                       breaks = c(min_x, seq(1000, max_x, 1000)),
+                       labels = c(min_x, seq(1000, max_x, 1000))) +
+    scale_y_continuous("", labels = NULL) +
+    theme_bw()
+)
+
+# For illustration
+next_closest_DE_by_goi$type <- toupper(next_closest_DE_by_goi$type)
+
+for_illustration <- next_closest_DE_by_goi %>%
+  group_by(scaffold) %>% 
+  arrange(desc(closest_DE_locus), .by_group = TRUE) %>% 
+  count(name = "count") %>% 
+  filter(count > 1) %>% 
+  ungroup()
+
+for_illustration <- next_closest_DE_by_goi %>% 
+  filter(scaffold %in% for_illustration$scaffold)
+
+colnames(for_illustration) <- 
+  c("Scaffold", "Locus", "Locus Start", "Locus Stop",
+    "Class", "Next Closest Locus")
+
+tbl_for_illustration <- for_illustration %>% 
+  gt(rowname_col = "Locus",
+     groupname_col = "Scaffold") %>% 
+  fmt_integer(c("Locus Start", "Locus Stop", "Next Closest Locus")) %>% 
+
+  tab_style(style = list(cell_text(weight = "bold")), 
+            locations = cells_row_groups()) %>% 
+
+  tab_header(title = "Next Closest DE by Gene-of-Interest (GOI)",
+             subtitle = "Grouped by Scaffold") %>% 
+  tab_style(style = list(cell_text(weight = "bold"),
+                         cell_fill()),
+          locations = list(cells_column_labels(), cells_title()))
+
+gtsave(tbl_for_illustration, "
+       results/undated_lab_meeting/tbl_for_illustration.html", inline_css = TRUE)
+
+
+
 # Capitalized descriptions to remove redundancy
 UBC_annots$domain_desc <- toupper(UBC_annots$domain_desc)
 
@@ -181,12 +300,26 @@ pfam_count <- UBC_annots %>%
 
 (top20_pfam <- pfam_count %>% slice_max(count, n = 20))
 
+tbl_for_top20_pfam <-
+  top20_pfam %>% 
+    rename("Domain ID" = domain_id, 
+           "Domain Description" = domain_desc,
+           "Count" = count) %>% 
+  gt() %>% 
+  fmt_integer(Count) %>% 
+  tab_header(title = "Top 20 Pfam domain by count") %>% 
+  tab_style(style = list(cell_text(weight = "bold"),
+                         cell_fill()),
+            locations = list(cells_column_labels(), cells_title()))
+
+gtsave(tbl_for_top20_pfam, 
+       "results/undated_lab_meeting/tbl_for_top20_pfam.html", inline_css = TRUE)
+
 top20_pfam_stats <-
   UBC_annots %>% 
   filter(domain_id %in% top20_pfam$domain_id)
 
-
-ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) + 
+top20_pfam_stats_plot <- ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) + 
   geom_boxplot() +
   geom_vline(xintercept = c(-2, 2), linetype = "dashed") +
   ggtitle("Top 20 most abundant PFAM domain with gene expression") +
@@ -202,3 +335,4 @@ ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) +
       "PF07714" = "PROTEIN TYROSINE KINASE")) +
   theme_bw()
 
+ggsave("results/figures/top20_pfam_exp_plot.svg", top20_pfam_stats_plot)
