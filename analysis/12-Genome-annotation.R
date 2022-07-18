@@ -77,40 +77,40 @@ write.table(UBC_annots, "results/ubc_dea_sig_genome-annotated.txt",
 #####
 
 # Read BLAST results
-jgi_genome_blast <- 
-  read.delim("results/jgi_dea_sig.blastWRCv3Annotation.txt", sep = "\t", 
-             stringsAsFactors = FALSE, col.names = blast_header) %>% 
-  select(ctg_cds, mRNA, ppos, qcovs, salltitles)
-
-str(jgi_genome_blast)
-# 'data.frame':	103175 obs. of  16 variables:
-
-
-# Filter BLAST results
-jgi_genome_blast <- jgi_genome_blast %>%
-  filter(ppos >= 95 & qcovs >= 50)
-
-str(jgi_genome_blast)
-# 'data.frame':	23479 obs. of  5 variables:
-
-
-#Take the top best hit from BLAST
-jgi_top_genome_blast <- jgi_genome_blast %>% 
-  group_by(ctg_cds) %>% 
-  arrange(ppos, qcovs) %>% 
-  slice_head(n = 1) %>% 
-  ungroup()
-
-
-jgi_top_genome_blast$locus <- 
-  str_replace(jgi_top_genome_blast$mRNA, "\\.\\d$", "")
-
-jgi_top_genome_blast <- jgi_top_genome_blast %>%
-  select(ctg_cds, locus, mRNA)
-
-#Add gene function
-JGI_annots <- 
-  left_join(jgi_top_genome_blast, gene_function, by = "locus")
-
-write.table(JGI_annots, "results/jgi_dea_sig_genome-annotated.txt",
-            sep = "\t", quote = FALSE, row.names = FALSE)
+# jgi_genome_blast <- 
+#   read.delim("results/jgi_dea_sig.blastWRCv3Annotation.txt", sep = "\t", 
+#              stringsAsFactors = FALSE, col.names = blast_header) %>% 
+#   select(ctg_cds, mRNA, ppos, qcovs, salltitles)
+# 
+# str(jgi_genome_blast)
+# # 'data.frame':	103175 obs. of  16 variables:
+# 
+# 
+# # Filter BLAST results
+# jgi_genome_blast <- jgi_genome_blast %>%
+#   filter(ppos >= 95 & qcovs >= 50)
+# 
+# str(jgi_genome_blast)
+# # 'data.frame':	23479 obs. of  5 variables:
+# 
+# 
+# #Take the top best hit from BLAST
+# jgi_top_genome_blast <- jgi_genome_blast %>% 
+#   group_by(ctg_cds) %>% 
+#   arrange(ppos, qcovs) %>% 
+#   slice_head(n = 1) %>% 
+#   ungroup()
+# 
+# 
+# jgi_top_genome_blast$locus <- 
+#   str_replace(jgi_top_genome_blast$mRNA, "\\.\\d$", "")
+# 
+# jgi_top_genome_blast <- jgi_top_genome_blast %>%
+#   select(ctg_cds, locus, mRNA)
+# 
+# #Add gene function
+# JGI_annots <- 
+#   left_join(jgi_top_genome_blast, gene_function, by = "locus")
+# 
+# write.table(JGI_annots, "results/jgi_dea_sig_genome-annotated.txt",
+#             sep = "\t", quote = FALSE, row.names = FALSE)
