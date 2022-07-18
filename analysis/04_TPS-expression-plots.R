@@ -20,7 +20,7 @@ TPS_exp_plot <- function(stats) {
   scale_y_discrete(labels = NULL) +
   scale_shape_manual(name = "",
                      labels = c("Annotated" = legend_for_annotated),
-                     values = c(1, 19, 15)) +
+                     values = c(1, 19, 15, 17)) +
 
   labs(caption = 
          expression(paste("p-value <= 0.05\t", ""^1, "Shalev T et al. (2018)"))) +
@@ -38,72 +38,79 @@ TPS_exp_plot <- function(stats) {
 
 ######
 
+
+# Read differential expressed statistics results
 UBC_dea_stats <- read.delim("results/ubc_dea_results.txt",
                             header = TRUE, stringsAsFactors = FALSE)
 str(UBC_dea_stats)
 # 'data.frame':	33989 obs. of  3 variables:
 
 
-# Read putative TPS CDS IDs from functional domain scan with hmmscan and rpsblast.
-UBC_putative_TPSs <- 
-  scan("data/targeted-pathway-annotation/02-TPS/putative_FL-TPS.UBC_assembly.cdsID.txt",
-              what = "character")
-# Read 85 items
+### Read functionally characterized orthologs
+UBC_cloned_TPSs <- 
+  read.delim("data/targeted-pathway-annotation/02-TPS/UBC_TPS_orthologs.cdsID.txt",
+             header = FALSE)
+             
+colnames(UBC_cloned_TPSs) <- c("type", "accession", "cds")
+
+UBC_cloned_TPSs <-
+  UBC_cloned_TPSs %>% select(cds, type)
+
+str(UBC_cloned_TPSs)
+# 'data.frame':	4 obs. of  2 variables:
 
 
-# Construct dataframe.  Easier to remove duplicates with CDS ID as rownames
-UBC_TPSs <- data.frame(row.names = c(unique(UBC_putative_TPSs)))
-
-# Default annotation as "Putative"
-UBC_TPSs$type <- "Putative"
-
-str(UBC_TPSs)
-# 'data.frame':	85 obs. of  1 variable:
-
-
-# Read annotated TPS in assembly
-UBC_annotated_TPSs <- 
-  read.delim("data/targeted-pathway-annotation/02-TPS/WRC_TPS.blastp.UBC_assembly.txt",
+### Read in silico predicted mono-TPS in assembly
+UBC_predicted_monoTPSs <- 
+  read.delim("data/targeted-pathway-annotation/02-TPS/WRC_monoTPS.blastp.UBC_assembly.txt",
              stringsAsFactors = FALSE, header = FALSE)
 
+# Remove rows if predicted monoTPS already funcationally characterized
+UBC_predicted_monoTPSs <- 
+  UBC_predicted_monoTPSs[!UBC_predicted_monoTPSs$V2 %in% UBC_cloned_TPSs$cds,]
 
 # Filter out low percent positive (V7) from BLASTp
-UBC_annotated_TPSs <- UBC_annotated_TPSs %>% 
+UBC_predicted_monoTPSs <- UBC_predicted_monoTPSs %>% 
   filter(V7 >= 90) %>% 
-  select(V2) %>% unique()
+  select(V2) %>% 
+  unique()
 
-str(UBC_annotated_TPSs)
-# 'data.frame':	12 obs. of  1 variable:
+UBC_predicted_monoTPSs$type <- "Predicted"
 
-UBC_TPSs[UBC_annotated_TPSs$V2, "type"] <- "Annotated"
+colnames(UBC_predicted_monoTPSs)[1] <- "cds"
 
-
-# Catalogue Sabinene Synthase in dataframe
-UBC_sabinene_syn <- 
-  read.delim("data/targeted-pathway-annotation/02-TPS/Sabinene_synthase.blastp.UBC_assembly.txt",
-             stringsAsFactors = FALSE, header = FALSE)
-
-UBC_sabinene_syn <- UBC_sabinene_syn$V2
-
-UBC_TPSs[UBC_sabinene_syn, "type"] <- "Sabinene Synthase"
+str(UBC_predicted_monoTPSs)
+# 'data.frame':	9 obs. of  2 variables:
 
 
-# Turn rowname to column
-UBC_TPSs <- UBC_TPSs %>% rownames_to_column("cds")
-
-str(UBC_TPSs)
-# 'data.frame':	304 obs. of  2 variables:
+# Concatenate all TPSs collected so far (cloned + predicted)
+UBC_TPSs <- rbind(UBC_cloned_TPSs, UBC_predicted_monoTPSs)
 
 
-UBC_TPS_stats <- inner_join(UBC_dea_stats, UBC_TPSs)
+# Read putative TPS CDS IDs from functional domain scan with hmmscan and rpsblast.
+UBC_putative_TPSs <- 
+  read.csv("data/targeted-pathway-annotation/02-TPS/putative_FL-TPS.UBC_assembly.cdsID.txt",
+           header = FALSE, col.names = c("cds")) %>% mutate("type" = "Putative")
 
-str(UBC_TPS_stats)  
-# 'data.frame':	107 obs. of  4 variables:
+UBC_putative_TPSs <- 
+  UBC_putative_TPSs[!UBC_putative_TPSs$cds %in% UBC_TPSs$cds,]
 
-UBC_TPS_stats$type <- factor(UBC_TPS_stats$type,
-                             levels = c("Putative", "Annotated", "Sabinene Synthase"))
+str(UBC_putative_TPSs)
+# 'data.frame':	73 obs. of  2 variables:
 
-UBC_TPS_exp_plot <- 
+UBC_TPSs <- rbind(UBC_TPSs, UBC_putative_TPSs)
+
+dim(UBC_TPSs)
+# [1] 86  2
+
+UBC_TPSs$type <- factor(UBC_TPSs$type, 
+                        levels = c("Putative", "Predicted", 
+                                  "Diterpene_synthase", "Sabinene_synthase"))
+
+UBC_TPS_stats <- inner_join(UBC_TPSs, UBC_dea_stats, by = c("cds"))
+
+
+UBC_TPS_exp_plot <-
   TPS_exp_plot(UBC_TPS_stats)
 
 (UBC_TPS_exp_plot <- 
@@ -114,71 +121,72 @@ UBC_TPS_exp_plot <-
 ggsave("results/figures/UBC_TPS_expression.svg", plot = UBC_TPS_exp_plot)
 
 ######
-
-JGI_dea_stats <- read.delim("results/jgi_dea_results.txt",
-                            header = TRUE, stringsAsFactors = FALSE)
-str(JGI_dea_stats)
-# 'data.frame':	84192 obs. of  4 variables:
-
-
-# Read putative TPS CDS IDs from functional domain scan with hmmscan and rpsblast.
-JGI_putative_TPSs <- 
-  scan("data/targeted-pathway-annotation/02-TPS/putative_FL-TPS.JGI_assembly.cdsID.txt",
-       what = "character")
-# Read 62 items
-
-JGI_TPSs <- data.frame(row.names = c(unique(JGI_putative_TPSs)))
-
-JGI_TPSs$type <- "Putative"
-
-str(JGI_TPSs)
-# 'data.frame':	62 obs. of  1 variable:
-
-
-JGI_annotated_TPSs <- 
-  read.delim("data/targeted-pathway-annotation/02-TPS/WRC_TPS.blastp.JGI_assembly.txt",
-             stringsAsFactors = FALSE, header = FALSE)
-
-#Filter out low percent positive (V7) from BLASTp
-JGI_annotated_TPSs <- JGI_annotated_TPSs %>% 
-  filter(V7 >= 90) %>% 
-  select(V2) %>% unique()
-
-str(JGI_annotated_TPSs)
-# 'data.frame':	11 obs. of  1 variable:
-
-JGI_TPSs[JGI_annotated_TPSs$V2, "type"] <- "Annotated"
-
-
-JGI_sabinene_syn <- 
-  read.delim("data/targeted-pathway-annotation/02-TPS/Sabinene_synthase.blastp.JGI_assembly.txt",
-             stringsAsFactors = FALSE, header = FALSE)
-
-JGI_sabinene_syn <- JGI_sabinene_syn$V2
-
-JGI_TPSs[JGI_sabinene_syn, "type"] <- "Sabinene Synthase"
-
-JGI_TPSs <- JGI_TPSs %>% rownames_to_column("cds")
-
-str(JGI_TPSs)
-# 'data.frame':	65 obs. of  2 variables:
-
-JGI_TPS_stats <- inner_join(JGI_dea_stats, JGI_TPSs)
-
-str(JGI_TPS_stats)  
-# 'data.frame':	348 obs. of  5 variables:
-
-JGI_TPS_stats$type <- factor(JGI_TPS_stats$type,
-                             levels = c("Putative", "Annotated", "Sabinene Synthase"))
-
-JGI_TPS_stats$focus <- factor(JGI_TPS_stats$focus, 
-                              levels = c("gYoung_glYoung", "gMature_glMature"))
-
-JGI_TPS_exp_plot <- TPS_exp_plot(JGI_TPS_stats)
-
-(JGI_TPS_exp_plot <- JGI_TPS_exp_plot + 
-  ggtitle("JGI Putative Full Length Terpene Synthase Expression Plot",
-          subtitle = "Size filtered >= 500 a.a") + 
-  facet_wrap(~focus, nrow = 2, strip.position = "right"))
-
-ggsave("results/figures/JGI_TPS_expression.svg", plot = JGI_TPS_exp_plot)
+# 
+# JGI_dea_stats <- read.delim("results/jgi_dea_results.txt",
+#                             header = TRUE, stringsAsFactors = FALSE)
+# str(JGI_dea_stats)
+# # 'data.frame':	84192 obs. of  4 variables:
+# 
+# 
+# # Read putative TPS CDS IDs from functional domain scan with hmmscan and rpsblast.
+# JGI_putative_TPSs <- 
+#   scan("data/targeted-pathway-annotation/02-TPS/putative_FL-TPS.JGI_assembly.cdsID.txt",
+#        what = "character")
+# # Read 62 items
+# 
+# JGI_TPSs <- data.frame(row.names = c(unique(JGI_putative_TPSs)))
+# 
+# JGI_TPSs$type <- "Putative"
+# 
+# str(JGI_TPSs)
+# # 'data.frame':	62 obs. of  1 variable:
+# 
+# 
+# JGI_annotated_TPSs <- 
+#   read.delim("data/targeted-pathway-annotation/02-TPS/WRC_TPS.blastp.JGI_assembly.txt",
+#              stringsAsFactors = FALSE, header = FALSE)
+# 
+# #Filter out low percent positive (V7) from BLASTp
+# JGI_annotated_TPSs <- JGI_annotated_TPSs %>% 
+#   filter(V7 >= 90) %>% 
+#   select(V2) %>% unique()
+# 
+# str(JGI_annotated_TPSs)
+# # 'data.frame':	11 obs. of  1 variable:
+# 
+# JGI_TPSs[JGI_annotated_TPSs$V2, "type"] <- "Annotated"
+# 
+# 
+# JGI_sabinene_syn <- 
+#   read.delim("data/targeted-pathway-annotation/02-TPS/Sabinene_synthase.blastp.JGI_assembly.txt",
+#              stringsAsFactors = FALSE, header = FALSE)
+# 
+# JGI_sabinene_syn <- JGI_sabinene_syn$V2
+# 
+# JGI_TPSs[JGI_sabinene_syn, "type"] <- "Sabinene Synthase"
+# 
+# JGI_TPSs <- JGI_TPSs %>% rownames_to_column("cds")
+# 
+# str(JGI_TPSs)
+# # 'data.frame':	65 obs. of  2 variables:
+# 
+# JGI_TPS_stats <- inner_join(JGI_dea_stats, JGI_TPSs)
+# 
+# str(JGI_TPS_stats)  
+# # 'data.frame':	348 obs. of  5 variables:
+# 
+# JGI_TPS_stats$type <- factor(JGI_TPS_stats$type,
+#                              levels = c("Putative", "Annotated", "Sabinene Synthase"))
+# 
+# JGI_TPS_stats$focus <- factor(JGI_TPS_stats$focus, 
+#                               levels = c("gYoung_glYoung", "gMature_glMature"))
+# 
+# JGI_TPS_exp_plot <- TPS_exp_plot(JGI_TPS_stats)
+# 
+# (JGI_TPS_exp_plot <- JGI_TPS_exp_plot + 
+#   ggtitle("JGI Putative Full Length Terpene Synthase Expression Plot",
+#           subtitle = "Size filtered >= 500 a.a") + 
+#   facet_wrap(~focus, nrow = 2, strip.position = "right"))
+# 
+# ggsave("results/figures/JGI_TPS_expression.svg", plot = JGI_TPS_exp_plot)
+# 
