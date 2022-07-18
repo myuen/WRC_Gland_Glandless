@@ -65,40 +65,40 @@ ggsave("results/figures/UBC_AKR_expression.svg", plot = UBC_AKR_exp_plot)
 
 
 #####
-
-JGI_dea_stats <- read.delim("results/jgi_dea_results.txt",
-                            header = TRUE, stringsAsFactors = FALSE)
-str(JGI_dea_stats)
-# 'data.frame':	84192 obs. of  4 variables:
-
-
-JGI_putative_AKRs <- 
-  scan("data/targeted-pathway-annotation/05-Aldo-keto-reductase/putative_AKR.JGI_assembly.cdsID.txt",
-       what = "character")
-
-JGI_putative_AKRs <- unique(JGI_putative_AKRs)
-
-length(JGI_putative_AKRs)
-# [1] 770
-
-
-JGI_AKR_stats <- JGI_dea_stats %>% 
-  filter(cds %in% JGI_putative_AKRs)
-
-str(JGI_AKR_stats)
-# 'data.frame':	248 obs. of  4 variables:
-
-JGI_AKR_stats$type <- "Putative"
-
-JGI_AKR_stats$focus <- factor(JGI_AKR_stats$focus, 
-                              levels = c("gYoung_glYoung", "gMature_glMature"))
-
-JGI_AKR_exp_plot <- AKR_exp_plot(JGI_AKR_stats)
-
-(JGI_AKR_exp_plot <- JGI_AKR_exp_plot + 
-    ggtitle("JGI Putative Aldo-Keto Reductase (AKR) Expression"))
-
-(JGI_AKR_exp_plot <- 
-    JGI_AKR_exp_plot + facet_wrap(~ focus, nrow = 2, strip.position = "right"))
-
+# 
+# JGI_dea_stats <- read.delim("results/jgi_dea_results.txt",
+#                             header = TRUE, stringsAsFactors = FALSE)
+# str(JGI_dea_stats)
+# # 'data.frame':	84192 obs. of  4 variables:
+# 
+# 
+# JGI_putative_AKRs <- 
+#   scan("data/targeted-pathway-annotation/05-Aldo-keto-reductase/putative_AKR.JGI_assembly.cdsID.txt",
+#        what = "character")
+# 
+# JGI_putative_AKRs <- unique(JGI_putative_AKRs)
+# 
+# length(JGI_putative_AKRs)
+# # [1] 770
+# 
+# 
+# JGI_AKR_stats <- JGI_dea_stats %>% 
+#   filter(cds %in% JGI_putative_AKRs)
+# 
+# str(JGI_AKR_stats)
+# # 'data.frame':	248 obs. of  4 variables:
+# 
+# JGI_AKR_stats$type <- "Putative"
+# 
+# JGI_AKR_stats$focus <- factor(JGI_AKR_stats$focus, 
+#                               levels = c("gYoung_glYoung", "gMature_glMature"))
+# 
+# JGI_AKR_exp_plot <- AKR_exp_plot(JGI_AKR_stats)
+# 
+# (JGI_AKR_exp_plot <- JGI_AKR_exp_plot + 
+#     ggtitle("JGI Putative Aldo-Keto Reductase (AKR) Expression"))
+# 
+# (JGI_AKR_exp_plot <- 
+#     JGI_AKR_exp_plot + facet_wrap(~ focus, nrow = 2, strip.position = "right"))
+# 
 ggsave("results/figures/JGI_AKR_expression.svg", plot = JGI_AKR_exp_plot)
