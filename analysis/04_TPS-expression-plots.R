@@ -13,27 +13,29 @@ TPS_exp_plot <- function(stats) {
   bound <- ceiling(max(abs(stats$logFC)))
   
   ggplot(stats, aes(x = logFC, y = cds)) +
-  geom_point(size = 2.5, aes(shape = type)) +
+    geom_point(size = 2.5, aes(shape = type)) +
+    
+    scale_x_continuous(limits = c(-bound, bound), 
+                       breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
+    scale_y_discrete(labels = NULL) +
 
-  scale_x_continuous(limits = c(-bound, bound), 
-                     breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
-  scale_y_discrete(labels = NULL) +
-  scale_shape_manual(name = "",
-                     labels = c("Annotated" = legend_for_annotated),
-                     values = c(1, 19, 15, 17)) +
+    scale_shape_manual(name = "",
+                       labels = c("Predicted" = legend_for_annotated),
+                       values = c(1, 5, 16, 17, 15)) +
 
-  labs(caption = 
-         expression(paste("p-value <= 0.05\t", ""^1, "Shalev T et al. (2018)"))) +
-  xlab(expression(paste("log"[2],"FC"))) +
-  ylab("") +
-  
-  geom_vline(xintercept = c(-2, 2), colour = "black", linetype = 2) +
-  
-  theme(legend.background = element_blank(),
-        panel.background = element_blank(),
-        panel.border = element_rect(fill = NA, "black"), 
-        panel.grid = element_line(colour = "grey95"),
-        axis.ticks = element_line(size = 0))
+    labs(caption =
+           expression(paste("p-value <= 0.05\t", ""^1, "Shalev T et al. (2018)"))) +
+
+    xlab(expression(paste("log"[2],"FC"))) +
+    ylab("") +
+
+    geom_vline(xintercept = c(-2, 2), colour = "black", linetype = 2) +
+
+    theme(legend.background = element_blank(),
+          panel.background = element_blank(),
+          panel.border = element_rect(fill = NA, "black"),
+          panel.grid = element_line(colour = "grey95"),
+          axis.ticks = element_line(size = 0))
 }
 
 ######
@@ -105,7 +107,8 @@ dim(UBC_TPSs)
 
 UBC_TPSs$type <- factor(UBC_TPSs$type, 
                         levels = c("Putative", "Predicted", 
-                                  "Diterpene_synthase", "Sabinene_synthase"))
+                                  "Diterpene_synthase", "Sabinene_synthase",
+                                  "Alpha_pinene_synthase"))
 
 UBC_TPS_stats <- inner_join(UBC_TPSs, UBC_dea_stats, by = c("cds"))
 
