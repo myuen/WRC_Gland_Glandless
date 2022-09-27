@@ -121,7 +121,9 @@ UBC_TPS_exp_plot <-
   ggtitle("UBC Putative Full Length Terpene Synthase Expression Plot",
           subtitle = "Size filtered >= 500 a.a"))
 
-ggsave("results/figures/UBC_TPS_expression.svg", plot = UBC_TPS_exp_plot)
+ggsave("results/figures/UBC_TPS_expression.svg", plot = UBC_TPS_exp_plot, 
+       width = 4000, height = 2500, units = 'px')
+
 
 ######
 # 
