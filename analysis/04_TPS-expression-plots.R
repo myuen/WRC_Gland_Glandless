@@ -7,36 +7,59 @@ library(tibble)
 
 TPS_exp_plot <- function(stats) {
 
-  legend_for_annotated <- 
-    substitute(paste(italic('in silico'), ' predicted mono-TPS'^1))
-  
+  legend_for_annotated <-
+    substitute(paste(italic('in silico'), 'predicted mono-TPS'^1, sep = ''))
+
   bound <- ceiling(max(abs(stats$logFC)))
   
   ggplot(stats, aes(x = logFC, y = cds)) +
-    geom_point(size = 2.5, aes(shape = type)) +
+    geom_point(size = 4, aes(shape = type, colour = type)) +
     
     scale_x_continuous(limits = c(-bound, bound), 
                        breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
     scale_y_discrete(labels = NULL) +
 
-    scale_shape_manual(name = "",
-                       labels = c("Predicted" = legend_for_annotated),
-                       values = c(1, 5, 16, 17, 15)) +
+    scale_shape_manual(
+      name = "",
+      labels = c("Putative" = "Putative TPS",
+                 "Predicted" = legend_for_annotated,
+                 "Diterpene_synthase" = "Diterpene Synthase",
+                 "Sabinene_synthase" = "Sabinene Synthase",
+                 "Alpha_pinene_synthase" = "Alpha Pinene Synthase"),
+      values = c(5, 1, 16, 17, 15)) +
+    
+    scale_color_manual(
+      # guide = NULL,
+      name = "",
+      labels = c("Putative" = "Putative TPS",
+                 "Predicted" = legend_for_annotated,
+                 "Diterpene_synthase" = "Diterpene Synthase",
+                 "Sabinene_synthase" = "Sabinene Synthase",
+                 "Alpha_pinene_synthase" = "Alpha Pinene Synthase"),
+      values = c("black", "black", "black", "red", "black")) +
 
     labs(caption =
-           expression(paste("p-value <= 0.05\t", ""^1, "Shalev T et al. (2018)"))) +
+           expression(paste("p-value <= 0.05 ", "\t"^1, "Shalev T et al. (2018)"))) +
 
     xlab(expression(paste("log"[2],"FC"))) +
     ylab("") +
 
-    geom_vline(xintercept = c(-2, 2), colour = "black", linetype = 2) +
+    geom_vline(xintercept = c(-2, 2), colour = "red", linetype = 2) +
 
-    theme(legend.background = element_blank(),
-          panel.background = element_blank(),
-          panel.border = element_rect(fill = NA, "black"),
-          panel.grid = element_line(colour = "grey95"),
-          axis.ticks = element_line(size = 0))
+    theme(
+      title = element_text(size = 20),
+      
+      legend.background = element_blank(),
+      legend.text = element_text(size = 20),
+      
+      panel.background = element_blank(),
+      panel.border = element_rect(fill = NA, "black"),
+      panel.grid = element_line(colour = "grey98"),
+      
+      axis.text = element_text(size = 14),
+      axis.ticks = element_line(size = 0))
 }
+
 
 ######
 

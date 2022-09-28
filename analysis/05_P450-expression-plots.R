@@ -7,34 +7,64 @@ library(tibble)
 #####
 
 # geom_points shapes in preferencial order
-shapes <- c(0, 1, 19, 17)
+# shapes <- c(0, 21, 23, 17)
 
 P450_exp_plot <- function(stats, pt_shapes) {
   
   bound <- ceiling(max(abs(stats$logFC)))
   
   ggplot(stats, aes(x = logFC, y = cds)) +
-    geom_point(size = 2.5, aes(shape = type)) +
+    geom_point(aes(size = type, shape = type, colour = type, fill = type)) +
+    
     scale_x_continuous(limits = c(-bound, bound), 
                        breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
     scale_y_discrete(labels = NULL) +
-    scale_shape_manual(name = "",
-    #                    labels = character(stats$type),
-                       values = pt_shapes) +
+
+    scale_alpha_manual(name = "",
+                       values = c("Putative" = 0.1, 
+                                  "Annotated" = 1, 
+                                  "CYP750B1" = 1, 
+                                  "CYP76AA25" = 1)) +
+    scale_colour_manual(name = "",
+                        values = c("black", "deepskyblue4", 
+                                   "red", "brown4")) +
+
+    scale_fill_manual(name = "",
+                      values = c("black", "deepskyblue4", 
+                                 "red", "brown4")) +
     
-    # ggtitle(title) +
+    scale_shape_manual(name = "",
+                       values = c(1, 21, 24, 22)) +
+
+    scale_size_manual(name = "",
+                      values = c("Putative" = 3, 
+                                 "Annotated" = 5, 
+                                 "CYP750B1" = 5, 
+                                 "CYP76AA25" = 5)) +
+    
+    
+    
+
     labs(caption = "p-value <= 0.05") +
     xlab(expression(paste("log"[2],"FC"))) +
     ylab("") +
     
-    geom_vline(xintercept = c(-2, 2), colour = "black", linetype = 2) +
+    geom_vline(xintercept = c(-2, 2), colour = "red", linetype = 2) +
     
-    theme(legend.background = element_blank(),
-          panel.background = element_blank(),
-          panel.border = element_rect(fill = NA, "black"), 
-          panel.grid = element_line(colour = "grey95"),
-          axis.ticks = element_line(size = 0))
+    theme(
+      title = element_text(size = 20),
+      
+      legend.background = element_blank(),
+      legend.text = element_text(size = 16),
+          
+      panel.background = element_blank(),
+      panel.border = element_rect(fill = NA, "black"), 
+      panel.grid = element_line(colour = "white"),
+
+      axis.text = element_text(size = 14),
+      axis.ticks = element_line(size = 0))
 }
+
 
 ######
 
@@ -117,7 +147,8 @@ UBC_P450_exp_plot <-
 (UBC_P450_exp_plot <- UBC_P450_exp_plot + 
     ggtitle("UBC P450s Expression Plot"))
 
-ggsave("results/figures/UBC_P450_expression.svg", plot = UBC_P450_exp_plot)
+ggsave("results/figures/UBC_P450_expression.svg", plot = UBC_P450_exp_plot,
+       width = 4000, height = 2500, units = 'px')
 
 
 ######

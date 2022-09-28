@@ -319,7 +319,7 @@ top20_pfam_stats <-
   UBC_annots %>% 
   filter(domain_id %in% top20_pfam$domain_id)
 
-top20_pfam_stats_plot <- ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) + 
+(top20_pfam_stats_plot <- ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) + 
   geom_boxplot() +
   geom_vline(xintercept = c(-2, 2), linetype = "dashed") +
   ggtitle("Top 20 most abundant PFAM domain with gene expression") +
@@ -333,6 +333,6 @@ top20_pfam_stats_plot <- ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id))
       "PF03936" = "TERPENE SYNTHASE FAMILY, METAL BINDING DOMAIN",
       "PF07693" = "KAP FAMILY P-LOOP DOMAIN",
       "PF07714" = "PROTEIN TYROSINE KINASE")) +
-  theme_bw()
+  theme_bw())
 
 ggsave("results/figures/top20_pfam_exp_plot.svg", top20_pfam_stats_plot)
