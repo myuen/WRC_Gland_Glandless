@@ -31,7 +31,7 @@ AKR_exp_plot <- function(stats) {
     
     panel.background = element_blank(),
     panel.border = element_rect(fill = NA, "black"), 
-    panel.grid = element_line(colour = "grey95"),
+    panel.grid = element_line(colour = "grey99"),
     
     axis.text = element_text(size = 14),
     axis.ticks = element_line(size = 0))
