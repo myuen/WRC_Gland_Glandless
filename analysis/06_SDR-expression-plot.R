@@ -9,9 +9,10 @@ SDR_exp_plot <- function(stats) {
   bound <- ceiling(max(abs(stats$logFC)))
 
   ggplot(stats, aes(x = logFC, y = cds)) +
-    geom_point(size = 2.5, aes(shape = type)) +
+    geom_point(size = 4, aes(shape = type)) +
+
   scale_x_continuous(limits = c(-bound, bound),
-                     breaks = c(-bound, 10, -5, -2, 0, 2, 5, 10, bound)) +
+                     breaks = c(-bound, seq(10, 10, 5), bound)) +
   scale_y_discrete(labels = NULL) +
     scale_shape_manual(name = "",
                        labels = c("Putative", "Cloned"),
@@ -21,15 +22,19 @@ SDR_exp_plot <- function(stats) {
   xlab(expression(paste("log"[2],"FC"))) +
   ylab("") +
 
-  geom_vline(xintercept = c(-2, 2), colour = "black", linetype = 2) +
+  geom_vline(xintercept = c(-2, 2), colour = "red", linetype = 2) +
 
   theme(
+    title = element_text(size = 20),
+    
     legend.background = element_blank(),
+    legend.text = element_text(size = 16),
     # strip.text.y = element_text(face = "bold", size = 12),
-        panel.background = element_blank(),
-        panel.border = element_rect(fill = NA, "black"),
-        panel.grid = element_line(colour = "grey95"),
-        axis.ticks = element_line(size = 0))
+
+    panel.background = element_blank(),
+    panel.border = element_rect(fill = NA, "black"),
+    panel.grid = element_line(colour = "grey99"),
+    axis.ticks = element_line(size = 0))
 }
 
 #####
@@ -92,7 +97,8 @@ UBC_SDR_exp_plot <- SDR_exp_plot(UBC_SDR_stats)
   ggtitle("UBC Short Chained Alcohol Dehydrogenase (SDR) Expression", 
           subtitle = "Size filtered between 250 to 350 a.a"))
 
-ggsave("results/figures/UBC_SDR_expression.svg", plot = UBC_SDR_exp_plot)
+ggsave("results/figures/UBC_SDR_expression.svg", plot = UBC_SDR_exp_plot,
+       width = 4000, height = 2500, units = 'px')
 
 
 #####
