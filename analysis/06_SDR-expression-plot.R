@@ -12,7 +12,7 @@ SDR_exp_plot <- function(stats) {
     geom_point(size = 4, aes(shape = type)) +
 
   scale_x_continuous(limits = c(-bound, bound),
-                     breaks = c(-bound, seq(10, 10, 5), bound)) +
+                     breaks = c(-bound, seq(-10, 10, 5), bound)) +
   scale_y_discrete(labels = NULL) +
     scale_shape_manual(name = "",
                        labels = c("Putative", "Cloned"),
@@ -29,11 +29,12 @@ SDR_exp_plot <- function(stats) {
     
     legend.background = element_blank(),
     legend.text = element_text(size = 16),
-    # strip.text.y = element_text(face = "bold", size = 12),
 
     panel.background = element_blank(),
     panel.border = element_rect(fill = NA, "black"),
     panel.grid = element_line(colour = "grey99"),
+    
+    axis.text = element_text(size = 14),
     axis.ticks = element_line(size = 0))
 }
 

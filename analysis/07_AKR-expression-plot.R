@@ -9,23 +9,31 @@ AKR_exp_plot <- function(stats) {
   bound <- ceiling(max(abs(stats$logFC)))
   
   ggplot(stats, aes(x = logFC, y = cds)) +
-    geom_point(size = 2, aes(shape = factor(type))) +
+    geom_point(size = 4, aes(shape = factor(type))) +
+    
     scale_x_continuous(limits = c(-bound, bound), 
-                       breaks = c(-bound, -10, -5, -2, 0, 2, 5, 10, bound)) + 
+                       breaks = c(-bound, seq(-10, 10, 5), bound)) + 
     scale_y_discrete(labels = NULL) +
-    scale_shape_manual("", values = 1) +
+    
+    scale_shape_manual(name = "", label = NULL, values = 1) +
 
   labs(caption = "p-value <= 0.05") +
   xlab(expression(paste("log"[2],"FC"))) +
   ylab("") +
   
-  geom_vline(xintercept = c(-2, 2), colour = "black", linetype = 2) +
+  geom_vline(xintercept = c(-2, 2), colour = "red", linetype = 2) +
   
   theme(
-    legend.background = element_blank(),
+    title = element_text(size = 20),
+    
+    # legend.background = element_blank(),
+    legend.position = "none",
+    
     panel.background = element_blank(),
     panel.border = element_rect(fill = NA, "black"), 
     panel.grid = element_line(colour = "grey95"),
+    
+    axis.text = element_text(size = 14),
     axis.ticks = element_line(size = 0))
 }
 
@@ -61,7 +69,8 @@ UBC_AKR_exp_plot <- AKR_exp_plot(UBC_AKR_stats)
 (UBC_AKR_exp_plot <- UBC_AKR_exp_plot + 
     ggtitle("UBC Putative Aldo-Keto Reductase (AKR) Expression"))
 
-ggsave("results/figures/UBC_AKR_expression.svg", plot = UBC_AKR_exp_plot)
+ggsave("results/figures/UBC_AKR_expression.svg", plot = UBC_AKR_exp_plot,
+       width = 4000, height = 2500, units = 'px')
 
 
 #####
