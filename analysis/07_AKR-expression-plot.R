@@ -16,25 +16,30 @@ AKR_exp_plot <- function(stats) {
     scale_y_discrete(labels = NULL) +
     
     scale_shape_manual(name = "", label = NULL, values = 1) +
+    
+    labs(caption = "p-value <= 0.05") +
+    xlab(expression(paste("log"[2],"FC"))) +
+    ylab("") +
+    
+    geom_vline(xintercept = c(-2, 2), colour = "red", linetype = 2) +
+    
+    annotate(geom = "text", x = 8, y = 20, size = 8,
+             label = "4 AKRs with higher\nexpression in gland\n") +
+    
+    annotate(geom = "text", x = -8, y = 18, size = 8,
+             label = "1 AKR with higher\nexpression in glandess") +
 
-  labs(caption = "p-value <= 0.05") +
-  xlab(expression(paste("log"[2],"FC"))) +
-  ylab("") +
-  
-  geom_vline(xintercept = c(-2, 2), colour = "red", linetype = 2) +
-  
-  theme(
-    title = element_text(size = 20),
-    
-    # legend.background = element_blank(),
-    legend.position = "none",
-    
-    panel.background = element_blank(),
-    panel.border = element_rect(fill = NA, "black"), 
-    panel.grid = element_line(colour = "grey99"),
-    
-    axis.text = element_text(size = 14),
-    axis.ticks = element_line(size = 0))
+    theme(
+      title = element_text(size = 20),
+      
+      legend.position = "none",
+      
+      panel.background = element_blank(),
+      panel.border = element_rect(fill = NA, "black"), 
+      panel.grid = element_line(colour = "grey99"),
+      
+      axis.text = element_text(size = 14),
+      axis.ticks = element_line(size = 0))
 }
 
 #####
@@ -42,8 +47,6 @@ AKR_exp_plot <- function(stats) {
 
 UBC_dea_stats <- read.delim("results/ubc_dea_results.txt",
                             header = TRUE, stringsAsFactors = FALSE)
-str(UBC_dea_stats)
-# 'data.frame':	33989 obs. of  3 variables:
 
 
 UBC_putative_AKRs <- 
@@ -64,6 +67,12 @@ str(UBC_AKR_stats)
 
 UBC_AKR_stats$type <- "Putative"
 
+UBC_AKR_stats <- UBC_AKR_stats %>% 
+  filter(adj.P.Val <= 0.05)
+
+str(UBC_AKR_stats)
+# 'data.frame':	23 obs. of  4 variables:
+
 UBC_AKR_exp_plot <- AKR_exp_plot(UBC_AKR_stats)
 
 (UBC_AKR_exp_plot <- UBC_AKR_exp_plot + 
@@ -71,43 +80,3 @@ UBC_AKR_exp_plot <- AKR_exp_plot(UBC_AKR_stats)
 
 ggsave("results/figures/UBC_AKR_expression.svg", plot = UBC_AKR_exp_plot,
        width = 4000, height = 2500, units = 'px')
-
-
-#####
-# 
-# JGI_dea_stats <- read.delim("results/jgi_dea_results.txt",
-#                             header = TRUE, stringsAsFactors = FALSE)
-# str(JGI_dea_stats)
-# # 'data.frame':	84192 obs. of  4 variables:
-# 
-# 
-# JGI_putative_AKRs <- 
-#   scan("data/targeted-pathway-annotation/05-Aldo-keto-reductase/putative_AKR.JGI_assembly.cdsID.txt",
-#        what = "character")
-# 
-# JGI_putative_AKRs <- unique(JGI_putative_AKRs)
-# 
-# length(JGI_putative_AKRs)
-# # [1] 770
-# 
-# 
-# JGI_AKR_stats <- JGI_dea_stats %>% 
-#   filter(cds %in% JGI_putative_AKRs)
-# 
-# str(JGI_AKR_stats)
-# # 'data.frame':	248 obs. of  4 variables:
-# 
-# JGI_AKR_stats$type <- "Putative"
-# 
-# JGI_AKR_stats$focus <- factor(JGI_AKR_stats$focus, 
-#                               levels = c("gYoung_glYoung", "gMature_glMature"))
-# 
-# JGI_AKR_exp_plot <- AKR_exp_plot(JGI_AKR_stats)
-# 
-# (JGI_AKR_exp_plot <- JGI_AKR_exp_plot + 
-#     ggtitle("JGI Putative Aldo-Keto Reductase (AKR) Expression"))
-# 
-# (JGI_AKR_exp_plot <- 
-#     JGI_AKR_exp_plot + facet_wrap(~ focus, nrow = 2, strip.position = "right"))
-# 
-ggsave("results/figures/JGI_AKR_expression.svg", plot = JGI_AKR_exp_plot)
