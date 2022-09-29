@@ -45,8 +45,7 @@ str(ubc_genome_blast)
 # 'data.frame':	2150 obs. of  5 variables:
 
 ubc_genome_blast %>% select(ctg_cds) %>% unique() %>% count()
-#      n
-# 1 1610
+# n = 1610
 # We only left with 1610 cds that pass the filter
 
 
@@ -57,24 +56,29 @@ ubc_top_genome_blast <- ubc_genome_blast %>%
   slice_head(n = 1) %>% 
   ungroup()
 
-str(ubc_top_genome_blast)
-# tibble [1,610 × 5] (S3: tbl_df/tbl/data.frame)
+
+# How many loci were DE
+str(length(unique(ubc_top_genome_blast$mRNA)))
+# n = 1192
 
 
+# Clean up contig name
 ubc_top_genome_blast$locus <-
   str_replace(ubc_top_genome_blast$mRNA, "\\.\\d$", "")
 
 ubc_top_genome_blast <- ubc_top_genome_blast %>%
   select(ctg_cds, locus, mRNA)
 
-
-#Add gene function
+#Add gene function annotation
 UBC_annots <- left_join(ubc_top_genome_blast, gene_function, by = "locus")
+
 
 write.table(UBC_annots, "results/ubc_dea_sig_genome-annotated.txt",
             sep = "\t", quote = FALSE, row.names = FALSE)
 
+
 #####
+
 
 # Read BLAST results
 # jgi_genome_blast <- 
