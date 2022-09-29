@@ -40,8 +40,6 @@ TBB_exp_plot <- function(stats){
 
 UBC_dea_stats <- read.delim("results/ubc_dea_results.txt",
                             header = TRUE, stringsAsFactors = FALSE)
-str(UBC_dea_stats)
-# 'data.frame':	33989 obs. of  3 variables:
 
 
 # Read putative TBB CDS IDs from functional domain scan with hmmscan and rpsblast.
@@ -54,12 +52,16 @@ str(UBC_TBB_orthologs)
 
 
 UBC_TBB_ortholog_stats <- 
-  inner_join(UBC_dea_stats, UBC_TBB_orthologs)
-# Joining, by = "cds"
+  inner_join(UBC_dea_stats, UBC_TBB_orthologs, by = 'cds')
+
+
+UBC_TBB_ortholog_stats <- UBC_TBB_ortholog_stats %>%
+  filter(adj.P.Val <= 0.05)
 
 str(UBC_TBB_ortholog_stats)
-# 'data.frame':	54 obs. of  6 variables:
+# 'data.frame':	35 obs. of  6 variables:
 
+# Relevel pathway factor
 UBC_TBB_ortholog_stats$pathway <- 
   factor(UBC_TBB_ortholog_stats$pathway, 
          levels = c("MEP", "MEV", "C1020"))
@@ -73,41 +75,3 @@ UBC_TBB_plot <-
 
 ggsave("results/figures/UBC_TBB_expression.svg", plot = UBC_TBB_plot,
        width = 4000, height = 2500, units = 'px')
-
-
-#####
-# 
-# 
-# JGI_dea_stats <- read.delim("results/jgi_dea_results.txt",
-#                             header = TRUE, stringsAsFactors = FALSE)
-# str(JGI_dea_stats)
-# # 'data.frame':	84192 obs. of  4 variables:
-# 
-# 
-# JGI_TBB_orthologs <- 
-#   read.table("data/targeted-pathway-annotation/01-Terpenoid_backbone_biosynthesis/JGI_TBB_orthologs.txt",
-#              stringsAsFactors = FALSE, header = TRUE)
-# str(JGI_TBB_orthologs)
-# # 'data.frame':	90 obs. of  4 variables:
-# 
-# 
-# JGI_TBB_ortholog_stats <- 
-#   inner_join(JGI_dea_stats, JGI_TBB_orthologs)
-# # Joining, by = "cds"
-# 
-# str(JGI_TBB_ortholog_stats)
-# # 'data.frame':	128 obs. of  7 variables:
-# 
-# 
-# JGI_TBB_ortholog_stats$pathway <- 
-#   factor(JGI_TBB_ortholog_stats$pathway, 
-#          levels = c("MEP", "MEV", "C1020"))
-# 
-# 
-# JGI_TBB_plot <- 
-#   TBB_exp_plot(JGI_TBB_ortholog_stats)
-# 
-# (JGI_TBB_plot <- 
-#     JGI_TBB_plot + ggtitle("JGI Terpenoid Backbone Biosynthesis"))
-# 
-# ggsave("results/figures/JGI_TBB_expression.svg", plot = JGI_TBB_plot)
