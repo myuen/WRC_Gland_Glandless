@@ -12,17 +12,21 @@ UBC_annots <-
 # name contain character '-'
 UBC_annots$scaffold <- as.character(UBC_annots$scaffold)
 
+
+# 1. Number of contigs with higher expression in gland
 UBC_annots %>% 
   filter(logFC >= 0) %>% 
-  select(ctg_cds) %>% 
+  select(mRNA) %>% 
   unique() %>% count()
-# 1 1726
+# 1,726 up-regulated contigs matched 955 genome loci
 
+
+# 2. Number of contigs with higher expression in glandless
 UBC_annots %>% 
   filter(logFC <= 0) %>% 
-  select(ctg_cds) %>% 
+  select(mRNA) %>% 
   unique() %>% count()
-# 1 673
+# 673 up-regulated contigs matched 364 genome loci
 
 
 scaffold_length <- 
@@ -31,16 +35,16 @@ scaffold_length <-
              stringsAsFactors = FALSE)
 
 
-# 1. How many number of scaffolds contain DE contigs?
+# 3. How many number of scaffolds contain DE contigs?
 (UBC_annots %>% 
     filter(!is.na(scaffold)) %>% 
     select(scaffold) %>% 
     unique() %>% 
     count())
-# 909
+# n = 909
 
 
-# 2. How many DE locus on ***a single*** scaffolds?
+# Enumerate number of DE locus *** per scaffold ***?
 (num_DE_locus_by_scaffold <- UBC_annots %>% 
   filter(!is.na(scaffold)) %>% 
   group_by(scaffold) %>% 
@@ -50,21 +54,19 @@ scaffold_length <-
   ungroup()
 )
 
-str(num_DE_locus_by_scaffold)
-# tibble [909 × 2] (S3: tbl_df/tbl/data.frame)
-
 
 # Add scaffold length 
 num_DE_locus_by_scaffold <- 
   left_join(num_DE_locus_by_scaffold, scaffold_length, by = "scaffold")
 
-# Minimum # of DE contig on ***a single*** scaffold
-min(num_DE_locus_by_scaffold$num_DE_locus)
-# [1] 1
 
-# Maximum # of DE contig on ***a single*** scaffold
+# 4a. Minimum # of DE loci on ***a single*** scaffold
+min(num_DE_locus_by_scaffold$num_DE_locus)
+# n = 1
+
+# 4b. Maximum # of DE loci on ***a single*** scaffold
 max(num_DE_locus_by_scaffold$num_DE_locus)
-# [1] 8
+# n = 8
 
 
 # Tabulate counts of scaffolds by num of DE locus
@@ -130,8 +132,8 @@ ggsave("results/figures/DE_locus_with_length.svg", p+q)
 #####
 
 
-# For scaffold with more than 1 DE locus, calculate the closest distance to 
-# the next DE locus
+# 5.For scaffold with more than 1 DE locus, calculate the closest 
+# distance to the next DE locus
 
 # Get scaffold ID for those with more than 1 DE locus
 gt_one_DE_locus <- num_DE_locus_by_scaffold %>% 
@@ -153,7 +155,7 @@ next_closest_DE_by_locus <-
   ungroup() %>%
   arrange(scaffold)
 
-# Plot next closest DE locus
+
 (min_x <- next_closest_DE_by_locus %>% 
   filter(closest_DE_locus > 0) %>% 
   select(closest_DE_locus) %>% 
@@ -168,6 +170,8 @@ next_closest_DE_by_locus <-
 ) 
 # [1] 8088.799
 
+
+# Plot next closest DE locus
 (g <- ggplot(next_closest_DE_by_locus, aes(closest_DE_locus/1000)) + 
   geom_density() +
   ggtitle("Exploring the Genome", 
@@ -183,7 +187,7 @@ next_closest_DE_by_locus <-
 ggsave("results/figures/Next_closest_DE.svg", g)
 
 
-# Find the next closest DE by gene of interest (goi)
+# 6. Find the next closest DE by gene of interest (goi)
 tbb <- 
   read.delim("data/targeted-pathway-annotation/01-Terpenoid_backbone_biosynthesis/UBC_TBB_orthologs.txt")
 
@@ -251,6 +255,7 @@ next_closest_DE_by_goi <-
     scale_y_continuous("", labels = NULL) +
     theme_bw()
 )
+
 
 # For illustration
 next_closest_DE_by_goi$type <- toupper(next_closest_DE_by_goi$type)
