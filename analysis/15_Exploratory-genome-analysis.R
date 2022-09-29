@@ -13,7 +13,7 @@ UBC_annots <-
 UBC_annots$scaffold <- as.character(UBC_annots$scaffold)
 
 
-# 1. Number of contigs with higher expression in gland
+# 1. Number of loci with higher expression in gland
 UBC_annots %>% 
   filter(logFC >= 0) %>% 
   select(mRNA) %>% 
@@ -21,7 +21,7 @@ UBC_annots %>%
 # 1,726 up-regulated contigs matched 955 genome loci
 
 
-# 2. Number of contigs with higher expression in glandless
+# 2. Number of loci with higher expression in glandless
 UBC_annots %>% 
   filter(logFC <= 0) %>% 
   select(mRNA) %>% 
@@ -35,7 +35,7 @@ scaffold_length <-
              stringsAsFactors = FALSE)
 
 
-# 3. How many number of scaffolds contain DE contigs?
+# 3. How many number of scaffolds contain DE loci?
 (UBC_annots %>% 
     filter(!is.na(scaffold)) %>% 
     select(scaffold) %>% 
@@ -76,7 +76,6 @@ max(num_DE_locus_by_scaffold$num_DE_locus)
     count(name = "num_scaffolds") %>% 
     ungroup()
 )
-
 #   num_DE_locus num_scaffolds
 # 1            1           709
 # 2            2           144
@@ -255,6 +254,8 @@ next_closest_DE_by_goi <-
     scale_y_continuous("", labels = NULL) +
     theme_bw()
 )
+
+ggsave("results/figures/Next_closest_DE_goi.svg", goi_plot)
 
 
 # For illustration
