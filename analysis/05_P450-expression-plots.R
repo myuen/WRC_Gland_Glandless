@@ -6,9 +6,6 @@ library(tibble)
 
 #####
 
-# geom_points shapes in preferencial order
-# shapes <- c(0, 21, 23, 17)
-
 P450_exp_plot <- function(stats, pt_shapes) {
   
   bound <- ceiling(max(abs(stats$logFC)))
@@ -92,7 +89,7 @@ str(UBC_P450s)
 # 'data.frame':	1066 obs. of  1 variable:
 
 
-# Read annotated TPS in assembly
+# Read annotated P450s in assembly
 UBC_annotated_P450s <- 
   read.delim("data/targeted-pathway-annotation/03-P450/P450s.blastp.UBC_assembly.txt",
              stringsAsFactors = FALSE, header = FALSE)
@@ -122,21 +119,24 @@ UBC_P450s[CYP750B1,] <- "CYP750B1"
 UBC_P450s[CYP76AA25,] <- "CYP76AA25"
 
 # Turn rowname to column
-UBC_P450s <- UBC_P450s %>% rownames_to_column("cds")
+UBC_P450s <- UBC_P450s %>% 
+  rownames_to_column("cds")
 
 str(UBC_P450s)
 # 'data.frame':	1066 obs. of  2 variables:
 
 
-UBC_P450_stats <- inner_join(UBC_dea_stats, UBC_P450s)
-# Joining, by = "cds"
+UBC_P450_stats <- inner_join(UBC_dea_stats, UBC_P450s, by = 'cds')
 
-str(UBC_P450_stats)  
+str(UBC_P450_stats)
 # 'data.frame':	472 obs. of  4 variables:
 
 UBC_P450_stats$type <-
   factor(UBC_P450_stats$type,
          levels = c("Putative", "Annotated", "CYP750B1", "CYP76AA25"))
+
+UBC_P450_stats <- UBC_P450_stats %>%
+  filter(adj.P.Val <= 0.05)
 
 # Number of types
 num_types <- length(unique(UBC_P450s$type))
