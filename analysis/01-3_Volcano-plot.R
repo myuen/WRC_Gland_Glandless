@@ -58,3 +58,6 @@ y_bound <- max(ceiling(-log10(UBC_dea_stats$adj.P.Val)))
 
 ggsave("results/figures/UBC_volcano.svg", plot = volcano,
        width = 4000, height = 2500, units = 'px')
+
+ggsave("results/figures/UBC_volcano.jpg", plot = volcano,
+       width = 4000, height = 2500, units = 'px')

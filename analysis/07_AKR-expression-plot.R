@@ -80,3 +80,6 @@ UBC_AKR_exp_plot <- AKR_exp_plot(UBC_AKR_stats)
 
 ggsave("results/figures/UBC_AKR_expression.svg", plot = UBC_AKR_exp_plot,
        width = 4000, height = 2500, units = 'px')
+
+ggsave("results/figures/UBC_AKR_expression.jpg", plot = UBC_AKR_exp_plot,
+       width = 4000, height = 2500, units = 'px')

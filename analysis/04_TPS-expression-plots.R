@@ -148,3 +148,5 @@ UBC_TPS_exp_plot <-
 ggsave("results/figures/UBC_TPS_expression.svg", plot = UBC_TPS_exp_plot, 
        width = 4000, height = 2500, units = 'px')
 
+ggsave("results/figures/UBC_TPS_expression.jpg", plot = UBC_TPS_exp_plot, 
+       width = 4000, height = 2500, units = 'px')

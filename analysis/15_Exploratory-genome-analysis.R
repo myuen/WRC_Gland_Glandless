@@ -92,19 +92,21 @@ max_y <- max(count_of_scaffold_by_DE_locus$num_scaffolds)
 
 
 (p <- ggplot(count_of_scaffold_by_DE_locus, aes(x = num_DE_locus, y = num_scaffolds)) + 
-  geom_point(size = 2) +
-
-  ggtitle("Exploring the Genome",
-          subtitle = "Number of DE locus per scaffolds") +
-  
-  labs(caption = "|logFC| \u2265 2,  Adj. p-value \u2264 0.05")+
-
-  scale_x_continuous("Number of DE locus",
-                     breaks = c(1:max_x), labels = c(1:max_x)) +
+    geom_point(size = 2) +
     
-  scale_y_continuous("Number of scaffolds", breaks = seq(1, max_y, 100)) +
+    ggtitle("Exploring the Genome",
+            subtitle = "Number of DE locus per scaffolds") +
+    
+    labs(caption = "|logFC| \u2265 2,  Adj. p-value \u2264 0.05")+
+    
+    scale_x_continuous("Number of DE locus",
+                       breaks = c(1:max_x), labels = c(1:max_x)) +
+    
+    scale_y_continuous("Number of scaffolds", breaks = seq(1, max_y, 100)) +
+    
+    theme_bw() +
 
-  theme_bw()
+    theme(panel.grid = element_line(colour = "grey97"))
 )
 
 
@@ -120,12 +122,16 @@ max_y <- max(count_of_scaffold_by_DE_locus$num_scaffolds)
                        breaks = c(1:max_x), labels = c(1:max_x)) +
     ylab("Scaffold Length") +
     
-    theme_bw()
+    theme_bw() +
+    
+    theme(panel.grid = element_line(colour = "grey97"))
 )
 
 p + q
 
 ggsave("results/figures/DE_locus_with_length.svg", p+q)
+
+ggsave("results/figures/DE_locus_with_length.jpg", p+q)
 
 
 #####
@@ -172,18 +178,22 @@ next_closest_DE_by_locus <-
 
 # Plot next closest DE locus
 (g <- ggplot(next_closest_DE_by_locus, aes(closest_DE_locus/1000)) + 
-  geom_density() +
-  ggtitle("Exploring the Genome", 
-          subtitle = expression(paste("Next closest differentially ",
-          "expressed locus on the ", bold("same scaffold")))) +
-  scale_x_continuous("Distance (kbp)",
-                     breaks = c(min_x, seq(1000, max_x, 1000)),
-                     labels = c(min_x, seq(1000, max_x, 1000))) +
-  scale_y_continuous("", labels = NULL) +
-  theme_bw()
+    geom_density() +
+    ggtitle("Exploring the Genome", 
+            subtitle = expression(paste("Next closest differentially ",
+                                        "expressed locus on the ", bold("same scaffold")))) +
+    scale_x_continuous("Distance (kbp)",
+                       breaks = c(min_x, seq(1000, max_x, 1000)),
+                       labels = c(min_x, seq(1000, max_x, 1000))) +
+    scale_y_continuous("", labels = NULL) +
+    
+    theme_bw() +
+    
+    theme(panel.grid = element_line(colour = "grey97"))
 )
 
 ggsave("results/figures/Next_closest_DE.svg", g)
+ggsave("results/figures/Next_closest_DE.jpg", g)
 
 
 # 6. Find the next closest DE by gene of interest (goi)
@@ -252,10 +262,14 @@ next_closest_DE_by_goi <-
                        breaks = c(min_x, seq(1000, max_x, 1000)),
                        labels = c(min_x, seq(1000, max_x, 1000))) +
     scale_y_continuous("", labels = NULL) +
-    theme_bw()
+    
+    theme_bw() +
+    
+    theme(panel.grid = element_line(colour = "grey97"))
 )
 
 ggsave("results/figures/Next_closest_DE_goi.svg", goi_plot)
+ggsave("results/figures/Next_closest_DE_goi.jpg", goi_plot)
 
 
 # For illustration
@@ -326,19 +340,24 @@ top20_pfam_stats <-
   filter(domain_id %in% top20_pfam$domain_id)
 
 (top20_pfam_stats_plot <- ggplot(top20_pfam_stats, aes(x = logFC, y = domain_id)) + 
-  geom_boxplot() +
-  geom_vline(xintercept = c(-2, 2), linetype = "dashed") +
-  ggtitle("Top 20 most abundant PFAM domain with gene expression") +
-  xlab(expression(paste("log"[2],"FC"))) +
-  ylab("Domain Description") +
-  scale_y_discrete(
-    labels = c(
-      "PF00201" = "UDP-GLUCORONOSYL AND UDP-GLUCOSYL TRANSFERASE",
-      "PF00560" = "LEUCINE RICH REPEAT",
-      "PF01397" = "TERPENE SYNTHASE, N-TERMINAL DOMAIN",
-      "PF03936" = "TERPENE SYNTHASE FAMILY, METAL BINDING DOMAIN",
-      "PF07693" = "KAP FAMILY P-LOOP DOMAIN",
-      "PF07714" = "PROTEIN TYROSINE KINASE")) +
-  theme_bw())
+    geom_boxplot() +
+    geom_vline(xintercept = c(-2, 2), linetype = "dashed") +
+    ggtitle("Top 20 most abundant PFAM domain with gene expression") +
+    xlab(expression(paste("log"[2],"FC"))) +
+    ylab("Domain Description") +
+    scale_y_discrete(
+      labels = c(
+        "PF00201" = "UDP-GLUCORONOSYL AND UDP-GLUCOSYL TRANSFERASE",
+        "PF00560" = "LEUCINE RICH REPEAT",
+        "PF01397" = "TERPENE SYNTHASE, N-TERMINAL DOMAIN",
+        "PF03936" = "TERPENE SYNTHASE FAMILY, METAL BINDING DOMAIN",
+        "PF07693" = "KAP FAMILY P-LOOP DOMAIN",
+        "PF07714" = "PROTEIN TYROSINE KINASE")) +
+    theme_bw() + 
+    
+    theme(panel.grid = element_line(colour = "grey97"))
+  )
 
 ggsave("results/figures/top20_pfam_exp_plot.svg", top20_pfam_stats_plot)
+
+ggsave("results/figures/top20_pfam_exp_plot.jpg", top20_pfam_stats_plot)

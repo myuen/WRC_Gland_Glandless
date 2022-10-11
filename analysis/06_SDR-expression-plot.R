@@ -105,3 +105,5 @@ UBC_SDR_exp_plot <- SDR_exp_plot(UBC_SDR_stats)
 ggsave("results/figures/UBC_SDR_expression.svg", plot = UBC_SDR_exp_plot,
        width = 4000, height = 2500, units = 'px')
 
+ggsave("results/figures/UBC_SDR_expression.jpg", plot = UBC_SDR_exp_plot,
+       width = 4000, height = 2500, units = 'px')

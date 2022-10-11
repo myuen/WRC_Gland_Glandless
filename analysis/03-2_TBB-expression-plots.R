@@ -2,8 +2,8 @@ library(dplyr)
 library(ggplot2)
 library(stringr)
 
-#####
 
+# Function to create plot
 TBB_exp_plot <- function(stats){
 
   bound <- ceiling(max(abs(stats$logFC)))
@@ -36,8 +36,8 @@ TBB_exp_plot <- function(stats){
       panel.grid = element_line(colour = "grey95"))
 }
 
-#####
 
+# Read differential expression results
 UBC_dea_stats <- read.delim("results/ubc_dea_results.txt",
                             header = TRUE, stringsAsFactors = FALSE)
 
@@ -51,10 +51,12 @@ str(UBC_TBB_orthologs)
 # 'data.frame':	60 obs. of  4 variables:
 
 
+# Inner join to keep only enzyme involved in terpenoid backbone biosynthesis
 UBC_TBB_ortholog_stats <- 
   inner_join(UBC_dea_stats, UBC_TBB_orthologs, by = 'cds')
 
 
+# Filter gene by statistics significance
 UBC_TBB_ortholog_stats <- UBC_TBB_ortholog_stats %>%
   filter(adj.P.Val <= 0.05)
 
@@ -74,4 +76,7 @@ UBC_TBB_plot <-
       ggtitle("Terpenoid Backbone Biosynthesis"))
 
 ggsave("results/figures/UBC_TBB_expression.svg", plot = UBC_TBB_plot,
+       width = 4000, height = 2500, units = 'px')
+
+ggsave("results/figures/UBC_TBB_expression.jpg", plot = UBC_TBB_plot,
        width = 4000, height = 2500, units = 'px')
