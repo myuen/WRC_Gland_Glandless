@@ -7,7 +7,7 @@ library(tibble)
 library(tximport)
 
 
-source("analysis/helper01_PCA-maker.R")
+# source("analysis/helper01_PCA-maker.R")
 
 
 ### Differential Expression Analysis on gland and glandless genotype 
@@ -25,20 +25,11 @@ pCutoff <- 0.05
 
 # Import file with tximport
 quant.files <-
-  dir("data",
+  dir("data/UBC",
       pattern = "UBC\\S+quant.sf",
       full.names = TRUE,
       recursive = TRUE,
       include.dirs = FALSE)
-
-
-# Read Salmon quantification with tximport
-txi <-
-  tximport(quant.files,
-           type = "salmon",
-           txOut = TRUE,
-           varReduce = TRUE,
-           countsFromAbundance = "lengthScaledTPM")
 
 
 samples <-
@@ -47,6 +38,7 @@ samples <-
   str_replace("_quant.sf", "")
 
 names(quant.files) <- samples
+
 
 metadata <-
   str_split(samples, "_")
@@ -57,7 +49,7 @@ metadata <-
                     "replicate" = l[3]
     )
     df
-})
+  })
 
 
 metadata$phenotype <- 
@@ -82,8 +74,17 @@ expDes <-
 # 8 UBC_glandless_D glandless         D
 
 
-x <- DGEList(counts = txi$counts, group = expDes$phenotype)
 
+# Read Salmon quantification with tximport
+txi <-
+  tximport(quant.files,
+           type = "salmon",
+           txOut = TRUE,
+           varReduce = TRUE,
+           countsFromAbundance = "lengthScaledTPM")
+
+
+x <- DGEList(counts = txi$counts, group = expDes$phenotype)
 dim(x)
 # [1] 97018     8
 
@@ -95,7 +96,8 @@ y <- x[(rowSums(cpm(x) > 1) >= 2), ]
 
 dim(y)
 # [1] 33989     8
-
+# only 33989 was kept for downstream analysis, the rest were filtered 
+# out due to low expression
 
 # Reset depth
 y$samples$lib.size <- colSums(y$counts)
@@ -103,14 +105,6 @@ y$samples$lib.size <- colSums(y$counts)
 
 # TMM Normalization by Depth
 y <- calcNormFactors(y)
-
-CPM <- cpm(y)
-
-colnames(CPM) <- expDes$sample
-
-write.table(CPM, "results/ubc_normalized_cpm.txt", 
-            sep = "\t", quote = FALSE,
-            col.names = TRUE, row.names = TRUE)
 
 
 # make model matrix
@@ -131,23 +125,23 @@ colnames(modMat) <-
 # 8         1     0
 
 
-# voom transformation
-v <- voom(y, modMat, plot = TRUE)
+# Calculate the ratio of the largest library to the smallest library
+max(colSums(y$counts))/min(colSums(y$counts))
+# [1] 1.189807
+
+# Since the ratio is low.  We will use the limma-trend
+logCPM <- cpm(y, log = TRUE, prior.count = 1)
+
+# MDS plot shows a clean separation between conditions
+plotMDS(logCPM)
 
 
-# Create PCA plot
-(p <- PCA_maker(expDes, v))
-
-ggsave("results/figures/ubc_pca.svg", plot = p)
-
+# Linear modeling
+fit <- lmFit(logCPM, modMat)
 
 cont_matrix <- makeContrasts(
   g_gl = gland - glandless,
   levels = modMat)
-
-
-# Linear modeling
-fit <- lmFit(v, modMat)
 
 fit2 <- contrasts.fit(fit, cont_matrix)
 
@@ -157,14 +151,13 @@ fit3 <- eBayes(fit2)
 summary(decideTests(fit3, method = "separate", 
                     adjust.method = "fdr", p.value = pCutoff, 
                     lfc = lfcCutoff))
-
 #         g_gl
-# Down     673
-# NotSig 31590
-# Up      1726
+# Down     798
+# NotSig 31188
+# Up      2003
 
 
-results <- topTable(fit3, sort.by = "logFC", number = Inf)
+results <- topTable(fit3, sort.by = "logFC", number = Inf, adjust.method = 'BH')
 
 results <- results %>% rownames_to_column("cds")
 
@@ -173,7 +166,7 @@ str(results)
 
 
 # Reorganize columns
-results <- results %>% 
+results <- results %>%
   select(cds, logFC, adj.P.Val)
 
 
@@ -181,7 +174,7 @@ results <- results %>%
 write.table(
   results, quote = FALSE, sep = "\t",
   row.names = FALSE, col.names = TRUE,
-  "results/ubc_dea_results.txt"
+  "results/UBC/ubc_dea_results.full.txt"
 )
 
 
@@ -190,12 +183,12 @@ sig_results <- results %>%
   filter(adj.P.Val <= pCutoff & abs(logFC) >= lfcCutoff)
 
 str(sig_results)
-# 'data.frame':	2399 obs. of  3 variables:
+# 'data.frame':	2801 obs. of  3 variables:
 
 write.table(
   sig_results, quote = FALSE, sep = "\t",
   row.names = FALSE, col.names = TRUE,
-  "results/ubc_dea_sig_results.txt"
+  "results/UBC/ubc_dea_results.sigDE.txt"
 )
 
-write(sig_results$cds, "results/ubc_dea_sig.cdsID.txt")
+# write(sig_results$cds, "results/ubc_dea_sig.cdsID.txt")
