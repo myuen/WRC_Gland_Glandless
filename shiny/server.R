@@ -1,0 +1,88 @@
+library(dplyr)
+library(DT)
+library(magrittr)
+library(readr)
+library(reticulate)
+library(shiny)
+library(tibble)
+
+
+seqio <- import('Bio.SeqIO')
+
+### Read differential expression statistics
+ubc <-
+  read.table("results/UBC/ubc_dea_results.sigDE.txt", header = TRUE)
+jgi <-
+  read.table("results/UBC/jgi_dea_on_ubc_transcriptome.sigDE.txt", header=TRUE)
+
+
+### Join the results so we can compare how the expression of the UBC gland 
+### genotype differ from JGI gland genotype
+ubc_jgi <- full_join(ubc, jgi, by='cds',
+                     suffix = c(' UBC_5309', ' JGI_5314'))
+
+ubc_jgi <- ubc_jgi |>
+  select('adj.P.Val JGI_5314', 'logFC JGI_5314', 
+         'cds', 
+         'logFC UBC_5309', 'adj.P.Val UBC_5309') 
+
+ubc_jgi <- ubc_jgi[order(ubc_jgi$`logFC UBC_5309`, decreasing = TRUE),]
+
+ubc_jgi_cds_id <- unique(ubc_jgi$cds)
+
+
+### Read fasta file through reticulate
+nt_dict <- seqio$index('data/ubc_gland_glandless_trinity_23Aug2021.transdecoder.cds.nr.fasta', 'fasta')
+aa_dict <- seqio$index('data/ubc_gland_glandless_trinity_23Aug2021.transdecoder.pep.fasta', 'fasta')
+
+
+### Read annotations
+refseq <- read_delim('data/all.sigDE.blastpRefSeqPlant213.tophit.txt', 
+                     delim = "\t", show_col_types = FALSE)
+refseq$source <- 'refseq'
+
+swissprot <- read_delim('data/all.sigDE.blastpSwissProt.tophit.txt', 
+                        delim = "\t", show_col_types = FALSE)
+swissprot$source <- 'swissprot'
+
+  
+function(input, output) {
+  output$DE <- DT::renderDT(ubc_jgi, server = TRUE,
+                            selection = 'single', rownames = FALSE)
+
+  output$annot <- renderTable({
+    id <- ubc_jgi[input$DE_rows_selected, 'cds']
+    selected = input$DE_rows_selected
+    
+    if (length(selected)) {
+      refseq_selected <- refseq |> 
+        filter(qseqid == id)
+      
+      swissprot_selected <- swissprot |> 
+        filter(qseqid == id)
+
+      refseq_count <- as.logical(length(refseq_selected))
+      swissprot_count <- as.logical(length(swissprot_selected))
+      
+      annot <- rbind(refseq_selected, swissprot_selected)
+      
+      annot <- annot |> 
+        select(source, qseqid, sseqid, evalue, salltitles)
+
+    }
+  }, rownames = FALSE, colnames = FALSE, align = 'c')
+  
+  
+  output$seq = renderText({
+    selected = input$DE_rows_selected
+    
+    id <- ubc_jgi[input$DE_rows_selected, 'cds']
+    
+    if (length(selected)) {
+      seqs <- paste(nt_dict[id]$format('fasta'), aa_dict[id]$format('fasta'), sep = '')
+    }
+  })
+  
+  output$Annot <- DT::renderDT(annot, server = TRUE, 
+                               selection = 'single', rownames = FALSE)
+}
